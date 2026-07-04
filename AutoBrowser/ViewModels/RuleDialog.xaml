@@ -1,0 +1,52 @@
+<Window x:Class="AutoBrowser.ViewModels.RuleDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Routing Rule" Height="440" Width="520"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+    <Window.Resources>
+        <Style TargetType="TextBlock" x:Key="Label">
+            <Setter Property="Margin" Value="0,0,0,4"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </Window.Resources>
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Rule Name" Style="{StaticResource Label}" Grid.Row="0"/>
+        <TextBox x:Name="NameBox" Grid.Row="1" Margin="0,0,0,10"/>
+
+        <TextBlock Text="URL Pattern (regex or plain text)" Style="{StaticResource Label}" Grid.Row="2"/>
+        <TextBox x:Name="PatternBox" Grid.Row="3" Margin="0,0,0,10"/>
+
+        <TextBlock Text="Detected Browsers" Style="{StaticResource Label}" Grid.Row="4"/>
+        <ComboBox x:Name="BrowserCombo" Grid.Row="5" Margin="0,0,0,10"
+                  DisplayMemberPath="DisplayName"
+                  SelectionChanged="BrowserCombo_SelectionChanged"/>
+
+        <TextBlock Text="Or enter custom path" Style="{StaticResource Label}" Grid.Row="6"/>
+        <Grid Grid.Row="7" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="BrowserPathBox" Grid.Column="0" Margin="0,0,8,0"/>
+            <Button Grid.Column="1" Content="Browse..." Padding="8,4" VerticalAlignment="Center" Click="BrowseBrowser"/>
+        </Grid>
+
+        <StackPanel Grid.Row="8" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="OK" IsDefault="True" Width="80" Margin="0,0,8,0" Click="Ok_Click"/>
+            <Button Content="Cancel" IsCancel="True" Width="80" Click="Cancel_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
