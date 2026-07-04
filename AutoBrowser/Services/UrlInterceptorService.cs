@@ -6,11 +6,13 @@ namespace AutoBrowser.Services;
 
 public class UrlInterceptorService
 {
-    private readonly IConfigurationService _configService;
+    private readonly IRuleService _ruleService;
+    private readonly IDefaultBrowserService _defaultBrowserService;
 
-    public UrlInterceptorService(IConfigurationService configService)
+    public UrlInterceptorService(IRuleService ruleService, IDefaultBrowserService defaultBrowserService)
     {
-        _configService = configService;
+        _ruleService = ruleService;
+        _defaultBrowserService = defaultBrowserService;
     }
 
     public bool TryRoute(string url)
@@ -21,7 +23,7 @@ public class UrlInterceptorService
         url = url.Trim();
         url = StripProtocolPrefix(url);
 
-        var rules = _configService.LoadRules()
+        var rules = _ruleService.LoadRules()
             .Where(r => r.IsEnabled)
             .OrderBy(r => r.Priority)
             .ToList();
@@ -35,7 +37,7 @@ public class UrlInterceptorService
             return true;
         }
 
-        var savedDefault = _configService.GetSavedDefaultBrowser();
+        var savedDefault = _defaultBrowserService.GetSavedDefaultBrowser();
         if (savedDefault is not null && File.Exists(savedDefault))
         {
             LaunchBrowser(savedDefault, "{url}", url);

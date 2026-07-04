@@ -1,116 +1,16 @@
 using System.IO;
-using System.Text.Json;
-using AutoBrowser.Models;
 using Microsoft.Win32;
 
 namespace AutoBrowser.Services;
 
-public class ConfigurationService : IConfigurationService
+public class DefaultBrowserService : IDefaultBrowserService
 {
+    private const string AppName = "AutoBrowser";
+    private const string ProgId = "AutoBrowserLink";
+
     private static readonly string DataDir = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory, "Data");
-
-    private static readonly string ConfigPath = Path.Combine(DataDir, "rules.json");
     private static readonly string DefaultBrowserPath = Path.Combine(DataDir, "default_browser.txt");
-
-    private static readonly string AppName = "AutoBrowser";
-    private static readonly string ProtocolName = "autobrowser";
-
-    public List<RoutingRule> LoadRules()
-    {
-        try
-        {
-            EnsureDataDir();
-
-            if (!File.Exists(ConfigPath))
-                return GetDefaultRules();
-
-            var json = File.ReadAllText(ConfigPath);
-            var savedRules = JsonSerializer.Deserialize<List<RoutingRule>>(json);
-            if (savedRules == null || savedRules.Count == 0)
-                return GetDefaultRules();
-
-            var defaults = GetDefaultRules();
-            var merged = false;
-
-            foreach (var defaultRule in defaults)
-            {
-                if (savedRules.Any(r => r.Name.Equals(defaultRule.Name, StringComparison.OrdinalIgnoreCase)))
-                    continue;
-
-                savedRules.Add(defaultRule);
-                merged = true;
-            }
-
-            if (merged)
-                SaveRules(savedRules);
-
-            return savedRules;
-        }
-        catch
-        {
-            return GetDefaultRules();
-        }
-    }
-
-    public void SaveRules(List<RoutingRule> rules)
-    {
-        EnsureDataDir();
-
-        var json = JsonSerializer.Serialize(rules, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(ConfigPath, json);
-    }
-
-    public bool RegisterProtocolHandler()
-    {
-        try
-        {
-            var exePath = Environment.ProcessPath;
-            if (string.IsNullOrEmpty(exePath))
-                return false;
-
-            using var key = Registry.CurrentUser.CreateSubKey(
-                $@"Software\Classes\{ProtocolName}");
-            key.SetValue("", $"URL:{AppName} Protocol");
-            key.SetValue("URL Protocol", "");
-
-            using var commandKey = key.CreateSubKey(@"shell\open\command");
-            commandKey.SetValue("", $"\"{exePath}\" \"%1\"");
-
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    public bool UnregisterProtocolHandler()
-    {
-        try
-        {
-            Registry.CurrentUser.DeleteSubKeyTree($@"Software\Classes\{ProtocolName}", false);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    public bool IsProtocolRegistered()
-    {
-        try
-        {
-            using var key = Registry.CurrentUser.OpenSubKey(
-                $@"Software\Classes\{ProtocolName}");
-            return key != null;
-        }
-        catch
-        {
-            return false;
-        }
-    }
 
     public bool RegisterAsDefaultBrowser()
     {
@@ -122,10 +22,8 @@ public class ConfigurationService : IConfigurationService
 
             SaveCurrentDefaultBrowser();
 
-            var progId = "AutoBrowserLink";
-
             using var classesKey = Registry.CurrentUser.CreateSubKey(
-                $@"Software\Classes\{progId}");
+                $@"Software\Classes\{ProgId}");
             classesKey.SetValue("", $"HTTP:{AppName}");
             classesKey.SetValue("FriendlyTypeName", AppName);
             using var dqKey = classesKey.CreateSubKey(@"DefaultIcon");
@@ -139,8 +37,8 @@ public class ConfigurationService : IConfigurationService
             capabilities.SetValue("ApplicationDescription", "Smart URL router");
 
             using var urlAssoc = capabilities.CreateSubKey("URLAssociations");
-            urlAssoc.SetValue("http", progId);
-            urlAssoc.SetValue("https", progId);
+            urlAssoc.SetValue("http", ProgId);
+            urlAssoc.SetValue("https", ProgId);
 
             using var registeredApp = Registry.CurrentUser.CreateSubKey(
                 @"Software\RegisteredApplications");
@@ -163,7 +61,7 @@ public class ConfigurationService : IConfigurationService
             registeredApp.DeleteValue(AppName, false);
 
             try { Registry.CurrentUser.DeleteSubKeyTree($@"Software\{AppName}", false); } catch { }
-            try { Registry.CurrentUser.DeleteSubKeyTree($@"Software\Classes\AutoBrowserLink", false); } catch { }
+            try { Registry.CurrentUser.DeleteSubKeyTree($@"Software\Classes\{ProgId}", false); } catch { }
 
             RemoveSavedDefaultBrowser();
             return true;
@@ -264,49 +162,5 @@ public class ConfigurationService : IConfigurationService
     {
         if (!Directory.Exists(DataDir))
             Directory.CreateDirectory(DataDir);
-    }
-
-    private static List<RoutingRule> GetDefaultRules()
-    {
-        var browsers = BrowserDefinition.GetKnownBrowsers();
-        var edge = browsers.FirstOrDefault(b => b.Name.Contains("edge"));
-        var chrome = browsers.FirstOrDefault(b => b.Name.Contains("chrome"));
-
-        var rules = new List<RoutingRule>();
-
-        if (edge != null)
-        {
-            rules.Add(new RoutingRule
-            {
-                Name = "Work sites",
-                UrlPattern = @"(teams|office|sharepoint|outlook|microsoft)\.com",
-                BrowserPath = edge.ExecutablePath,
-                BrowserArguments = edge.ArgumentsTemplate,
-                Priority = 1
-            });
-        }
-
-        if (chrome != null)
-        {
-            rules.Add(new RoutingRule
-            {
-                Name = "Social & Entertainment",
-                UrlPattern = @"(youtube|reddit|twitter|x\.com|instagram|facebook)\.com",
-                BrowserPath = chrome.ExecutablePath,
-                BrowserArguments = chrome.ArgumentsTemplate,
-                Priority = 2
-            });
-        }
-
-        rules.Add(new RoutingRule
-        {
-            Name = "Development",
-            UrlPattern = @"(github|gitlab|stackoverflow|npmjs|docker)\.(com|io)",
-            BrowserPath = chrome?.ExecutablePath ?? edge?.ExecutablePath ?? "",
-            BrowserArguments = chrome?.ArgumentsTemplate ?? edge?.ArgumentsTemplate ?? "{url}",
-            Priority = 3
-        });
-
-        return rules;
     }
 }
