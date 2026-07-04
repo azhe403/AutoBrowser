@@ -42,12 +42,12 @@ Extract and run `AutoBrowser.exe`.
 ## Build from Source
 
 ```bash
-dotnet build AutoBrowser\AutoBrowser.csproj
+dotnet build src\AutoBrowser\AutoBrowser.csproj
 ```
 
 Verify compilation without killing a running instance:
 ```bash
-dotnet build AutoBrowser\AutoBrowser.csproj -o bin\staging
+dotnet build src\AutoBrowser\AutoBrowser.csproj -o bin\staging
 ```
 
 ## Tech Stack

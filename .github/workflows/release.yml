@@ -38,14 +38,14 @@ jobs:
           }
 
       - run: >
-          dotnet publish AutoBrowser\AutoBrowser.csproj
+          dotnet publish src\AutoBrowser\AutoBrowser.csproj
           -c Release -f net10.0-windows
           -p:PublishSingleFile=true -p:Version=${{ env.VERSION }}
           --self-contained false
           -o publish\framework-dependent
 
       - run: >
-          dotnet publish AutoBrowser\AutoBrowser.csproj
+          dotnet publish src\AutoBrowser\AutoBrowser.csproj
           -c Release -f net10.0-windows -r win-x64
           -p:PublishSingleFile=true -p:PublishTrimmed=false -p:Version=${{ env.VERSION }}
           --self-contained true

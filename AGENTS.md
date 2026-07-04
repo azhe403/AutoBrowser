@@ -15,7 +15,7 @@ AutoBrowser is a WPF desktop app for Windows that routes URLs to user-configured
 ## Project Structure
 
 ```
-AutoBrowser/
+src/AutoBrowser/
 ├── App.xaml / .cs           # Entry point, theme apply, single-instance mutex
 ├── MainWindow.xaml / .cs    # Main UI, tray icon
 ├── Models/
@@ -48,12 +48,12 @@ Relevant memories:
 
 ## Build & Run
 
-- Verify while app runs: `dotnet build AutoBrowser\AutoBrowser.csproj -o bin\staging` (no kill)
-- Full build: `dotnet build`
-- Run: `dotnet run` or run EXE directly
+- Verify while app runs: `dotnet build src\AutoBrowser\AutoBrowser.csproj -o bin\staging` (no kill)
+- Full build: `dotnet build src\AutoBrowser\AutoBrowser.csproj`
+- Run: `dotnet run --project src\AutoBrowser\AutoBrowser.csproj` or run EXE directly
 
-## Git Rules
+## Git Rules — CRITICAL
 
+- **NEVER commit or push without explicit user permission** — this is the #1 rule
 - Split large changes into multiple logical commits
 - Add 3-5 minute random delay between commits
-- Do NOT commit or push without explicit user permission
