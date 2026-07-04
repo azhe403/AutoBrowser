@@ -13,6 +13,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
@@ -53,11 +55,13 @@ jobs:
 
       - shell: pwsh
         run: |
-          $tag = "v$env:VERSION"
-          $prev = git describe --tags --abbrev=0 $tag^ 2>$null
-          if (-not $prev) { $prev = "HEAD~3" }
+          $prev = git describe --tags --abbrev=0 HEAD 2>$null
 
-          $log = git log "$prev..HEAD" --oneline --reverse
+          if ($prev) {
+            $log = git log "$prev..HEAD" --oneline --reverse
+          } else {
+            $log = git log --oneline --reverse HEAD
+          }
           $commits = ""
           foreach ($line in $log) {
             $hash, $msg = $line -split ' ', 2
