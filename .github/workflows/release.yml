@@ -3,6 +3,7 @@ name: Release
 on:
   push:
     branches: [ main ]
+    tags: [ 'v*' ]
 
 permissions:
   contents: write
@@ -18,10 +19,17 @@ jobs:
 
       - shell: pwsh
         run: |
-          $run = $env:GITHUB_RUN_NUMBER
-          $minor = [Math]::Floor($run / 100)
-          $patch = $run % 100
-          echo "VERSION=1.$minor.$patch" >> $env:GITHUB_ENV
+          if ("${{ github.ref_type }}" -eq "tag") {
+            $v = "${{ github.ref_name }}" -replace '^v'
+            echo "VERSION=$v" >> $env:GITHUB_ENV
+            echo "IS_PRERELEASE=false" >> $env:GITHUB_ENV
+          } else {
+            $run = $env:GITHUB_RUN_NUMBER
+            $minor = [Math]::Floor($run / 100)
+            $patch = $run % 100
+            echo "VERSION=1.$minor.$patch" >> $env:GITHUB_ENV
+            echo "IS_PRERELEASE=true" >> $env:GITHUB_ENV
+          }
 
       - run: >
           dotnet publish AutoBrowser\AutoBrowser.csproj
@@ -77,3 +85,4 @@ jobs:
           name: v${{ env.VERSION }}
           files: publish/AutoBrowser-*.zip
           body_path: ${{ runner.temp }}/release-notes.md
+          prerelease: ${{ env.IS_PRERELEASE }}
