@@ -58,6 +58,9 @@
                                  Margin="2,0" VerticalAlignment="Center"/>
                 <Rectangle Width="1" Fill="{DynamicResource ControlElevationBorderBrush}" Margin="4,2"/>
                 <ui:Button Content="Test URL..." Command="{Binding LaunchUrlCommand}" Margin="0,0,4,4"/>
+                <Rectangle Width="1" Fill="{DynamicResource ControlElevationBorderBrush}" Margin="4,2"/>
+                <ui:Button Content="Check Update" Command="{Binding CheckForUpdateCommand}"
+                           IsEnabled="{Binding CanCheckForUpdate}" Margin="0,0,4,4"/>
             </WrapPanel>
             </Border>
 

@@ -20,5 +20,15 @@
       <PackageReference Include="WPF-UI" Version="4.3.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\AutoUpdater\AutoUpdater.csproj" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <Target Name="CopyUpdater" AfterTargets="Build">
+        <ItemGroup>
+            <UpdaterFiles Include="$(MSBuildThisFileDirectory)..\AutoUpdater\bin\$(Configuration)\net10.0\AutoUpdater*" />
+        </ItemGroup>
+        <Copy SourceFiles="@(UpdaterFiles)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
+    </Target>
 
 </Project>

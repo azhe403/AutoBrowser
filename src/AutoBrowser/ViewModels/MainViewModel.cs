@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Input;
 using AutoBrowser.Models;
 using AutoBrowser.Services;
@@ -13,9 +14,13 @@ public class MainViewModel : INotifyPropertyChanged
     private readonly IProtocolService _protocolService;
     private readonly IDefaultBrowserService _defaultBrowserService;
     private readonly ISettingsService _settingsService;
+    private readonly UpdateService _updateService = new();
     private RoutingRule? _selectedRule;
     private bool _isDarkTheme;
     private string _status = "Ready";
+    private string _updateStatus = "";
+    private bool _isCheckingUpdate;
+    private bool _isDownloadingUpdate;
 
     public ObservableCollection<RoutingRule> Rules { get; } = [];
 
@@ -81,12 +86,33 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    public string UpdateStatus
+    {
+        get => _updateStatus;
+        set { _updateStatus = value; OnPropertyChanged(); }
+    }
+
+    public bool IsCheckingUpdate
+    {
+        get => _isCheckingUpdate;
+        set { _isCheckingUpdate = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanCheckForUpdate)); }
+    }
+
+    public bool IsDownloadingUpdate
+    {
+        get => _isDownloadingUpdate;
+        set { _isDownloadingUpdate = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanCheckForUpdate)); }
+    }
+
+    public bool CanCheckForUpdate => !IsCheckingUpdate && !IsDownloadingUpdate;
+
     public ICommand AddRuleCommand { get; }
     public ICommand EditRuleCommand { get; }
     public ICommand DeleteRuleCommand { get; }
     public ICommand MoveUpCommand { get; }
     public ICommand MoveDownCommand { get; }
     public ICommand LaunchUrlCommand { get; }
+    public ICommand CheckForUpdateCommand { get; }
 
     public MainViewModel()
     {
@@ -105,6 +131,91 @@ public class MainViewModel : INotifyPropertyChanged
         MoveUpCommand = new RelayCommand(_ => MoveUp(), _ => SelectedRule is not null);
         MoveDownCommand = new RelayCommand(_ => MoveDown(), _ => SelectedRule is not null);
         LaunchUrlCommand = new RelayCommand(_ => LaunchUrl());
+        CheckForUpdateCommand = new RelayCommand(async _ => await CheckForUpdateAsync());
+        _ = CheckForUpdateSilentAsync();
+    }
+
+    private async Task CheckForUpdateSilentAsync()
+    {
+        try
+        {
+            var release = await _updateService.CheckForUpdateAsync();
+            if (release is null || !release.IsNewer) return;
+            await ShowUpdateDialogAsync(release);
+        }
+        catch
+        {
+            // Silently ignore errors on startup
+        }
+    }
+
+    private async Task CheckForUpdateAsync()
+    {
+        if (IsCheckingUpdate || IsDownloadingUpdate) return;
+
+        IsCheckingUpdate = true;
+        UpdateStatus = "Checking for updates...";
+        Status = UpdateStatus;
+
+        try
+        {
+            var release = await _updateService.CheckForUpdateAsync();
+            if (release is null)
+            {
+                UpdateStatus = "No release info available (no releases or offline).";
+                Status = UpdateStatus;
+                return;
+            }
+
+            if (!release.IsNewer)
+            {
+                UpdateStatus = $"You're up to date (v{release.Version}).";
+                Status = UpdateStatus;
+                return;
+            }
+
+            await ShowUpdateDialogAsync(release);
+        }
+        catch (Exception ex)
+        {
+            UpdateStatus = $"Update failed: {ex.Message}";
+            Status = UpdateStatus;
+        }
+        finally
+        {
+            IsCheckingUpdate = false;
+            IsDownloadingUpdate = false;
+        }
+    }
+
+    private async Task ShowUpdateDialogAsync(ReleaseInfo release)
+    {
+        var dialog = new Wpf.Ui.Controls.MessageBox
+        {
+            Title = "Update Available",
+            Content = $"Version {release.Version} is available.\n\nCurrent: {typeof(UpdateService).Assembly.GetName().Version}\n\nDownload and install?",
+            PrimaryButtonText = "Yes",
+            SecondaryButtonText = "No",
+            Width = 500,
+            MinWidth = 500
+        };
+        dialog.Owner = System.Windows.Application.Current.MainWindow;
+        var result = await dialog.ShowDialogAsync();
+
+        if (result != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+
+        IsDownloadingUpdate = true;
+        UpdateStatus = "Downloading update...";
+        Status = UpdateStatus;
+
+        var progress = new Progress<double>(p =>
+        {
+            var pct = (int)(p * 100);
+            UpdateStatus = $"Downloading... {pct}%";
+            Status = UpdateStatus;
+        });
+
+        await _updateService.DownloadAndUpdateAsync(release, progress);
     }
 
     private void LoadRules()

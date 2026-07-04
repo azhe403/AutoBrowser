@@ -25,17 +25,23 @@ jobs:
 
       - shell: pwsh
         run: |
+          $rev = [Math]::Floor([DateTime]::UtcNow.TimeOfDay.TotalSeconds * 65535 / 86400)
           if ("${{ github.ref_type }}" -eq "tag") {
             $v = "${{ github.ref_name }}" -replace '^v'
-            echo "VERSION=$v" >> $env:GITHUB_ENV
+            echo "VERSION=$v.$rev" >> $env:GITHUB_ENV
             echo "IS_PRERELEASE=false" >> $env:GITHUB_ENV
           } else {
             $run = $env:GITHUB_RUN_NUMBER
             $minor = [Math]::Floor($run / 100)
             $patch = $run % 100
-            echo "VERSION=1.$minor.$patch" >> $env:GITHUB_ENV
+            echo "VERSION=1.$minor.$patch.$rev" >> $env:GITHUB_ENV
             echo "IS_PRERELEASE=true" >> $env:GITHUB_ENV
           }
+
+      - run: >
+          dotnet publish src\AutoUpdater\AutoUpdater.csproj
+          -c Release -r win-x64
+          -o publish\updater
 
       - run: >
           dotnet publish src\AutoBrowser\AutoBrowser.csproj
@@ -53,9 +59,14 @@ jobs:
 
       - shell: pwsh
         run: |
+          Copy-Item publish\updater\AutoUpdater.exe publish\framework-dependent\
+          Copy-Item publish\updater\AutoUpdater.exe publish\self-contained\
+
+      - shell: pwsh
+        run: |
           $v = "${{ env.VERSION }}"
-          Compress-Archive publish\framework-dependent\AutoBrowser.exe publish\AutoBrowser-$v-framework-dependent.zip
-          Compress-Archive publish\self-contained\AutoBrowser.exe publish\AutoBrowser-$v-self-contained.zip
+          Compress-Archive publish\framework-dependent\* publish\AutoBrowser-$v-framework-dependent.zip
+          Compress-Archive publish\self-contained\* publish\AutoBrowser-$v-self-contained.zip
 
       - shell: pwsh
         run: |
