@@ -107,13 +107,25 @@ public class UrlInterceptorService
                 args = $"-osint -url \"{url}\"";
             }
 
-            Log.Verbose("Starting process: {BrowserPath} {Args}", browserPath, args);
-            Process.Start(new ProcessStartInfo
+            if (IsEdge(browserPath))
             {
-                FileName = browserPath,
-                Arguments = args,
-                UseShellExecute = false
-            });
+                Log.Verbose("Edge detected, using microsoft-edge protocol for tab reuse");
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = $"microsoft-edge:{url}",
+                    UseShellExecute = true
+                });
+            }
+            else
+            {
+                Log.Verbose("Starting process: {BrowserPath} {Args}", browserPath, args);
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = browserPath,
+                    Arguments = args,
+                    UseShellExecute = false
+                });
+            }
             Log.Information("LaunchBrowser completed successfully");
         }
         catch (Exception ex)
@@ -122,6 +134,12 @@ public class UrlInterceptorService
             System.Windows.MessageBox.Show($"Failed to launch browser: {ex.Message}",
                 "AutoBrowser Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
         }
+    }
+
+    private static bool IsEdge(string browserPath)
+    {
+        var fileName = Path.GetFileNameWithoutExtension(browserPath);
+        return fileName.Equals("msedge", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsFirefox(string browserPath)

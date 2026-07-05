@@ -35,11 +35,11 @@ public class BrowserDefinition
         }
 
         TryAdd("edge", "Microsoft Edge",
-            Path.Combine(programFiles, "Microsoft", "Edge", "Application", "msedge.exe"), "--new-tab {url}");
+            Path.Combine(programFiles, "Microsoft", "Edge", "Application", "msedge.exe"));
         TryAdd("edge_x86", "Microsoft Edge",
-            Path.Combine(programFilesX86 ?? "", "Microsoft", "Edge", "Application", "msedge.exe"), "--new-tab {url}");
+            Path.Combine(programFilesX86 ?? "", "Microsoft", "Edge", "Application", "msedge.exe"));
         TryAdd("edge_user", "Microsoft Edge",
-            Path.Combine(localAppData, "Microsoft", "Edge", "Application", "msedge.exe"), "--new-tab {url}");
+            Path.Combine(localAppData, "Microsoft", "Edge", "Application", "msedge.exe"));
         TryAdd("chrome", "Google Chrome",
             Path.Combine(programFiles, "Google", "Chrome", "Application", "chrome.exe"));
         TryAdd("chrome_x86", "Google Chrome",

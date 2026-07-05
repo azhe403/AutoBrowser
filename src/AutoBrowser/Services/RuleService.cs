@@ -29,11 +29,17 @@ public class RuleService : IRuleService
 
             foreach (var defaultRule in defaults)
             {
-                if (savedRules.Any(r => r.Name.Equals(defaultRule.Name, StringComparison.OrdinalIgnoreCase)))
-                    continue;
-
-                savedRules.Add(defaultRule);
-                merged = true;
+                var existing = savedRules.FirstOrDefault(r => r.Name.Equals(defaultRule.Name, StringComparison.OrdinalIgnoreCase));
+                if (existing == null)
+                {
+                    savedRules.Add(defaultRule);
+                    merged = true;
+                }
+                else if (existing.BrowserArguments != defaultRule.BrowserArguments)
+                {
+                    existing.BrowserArguments = defaultRule.BrowserArguments;
+                    merged = true;
+                }
             }
 
             if (merged)
