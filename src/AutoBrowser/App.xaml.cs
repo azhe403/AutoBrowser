@@ -109,7 +109,12 @@ public partial class App : System.Windows.Application
 
         ApplicationThemeManager.Apply(theme);
         CurrentThemeMode = mode;
-        _settingsService?.SaveSettings(new AppSettings { ThemeMode = mode });
+        if (_settingsService is not null)
+        {
+            var settings = _settingsService.LoadSettings();
+            settings.ThemeMode = mode;
+            _settingsService.SaveSettings(settings);
+        }
     }
 
     protected override void OnExit(System.Windows.ExitEventArgs e)
