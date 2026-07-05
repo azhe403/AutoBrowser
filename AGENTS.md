@@ -94,6 +94,19 @@ See `workflow/sync-memory` for details. Use `AutoBrowser/changes/YYYY-MM-DD` for
 - Full build: `dotnet build src\AutoBrowser\AutoBrowser.csproj`
 - Run: `dotnet run --project src\AutoBrowser\AutoBrowser.csproj` or run EXE directly
 
+## Post-Change Verification — ALWAYS
+
+After **any** code or XAML change, run this sequence to confirm the app starts without crash:
+
+1. Build: `dotnet build src\AutoBrowser\AutoBrowser.csproj -o bin\staging`
+2. Launch, wait 5s, close:
+   ```powershell
+   $proc = Start-Process -FilePath "bin\staging\AutoBrowser.exe" -PassThru; Start-Sleep -Seconds 5; Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+   ```
+3. Check the log at `bin\staging\Logs/` for any `[ERR]` entries.
+
+If the app fails to launch or throws an error, fix it before proceeding.
+
 ## Git Rules — CRITICAL
 
 - **NEVER commit or push without explicit user permission** — this is the #1 rule
