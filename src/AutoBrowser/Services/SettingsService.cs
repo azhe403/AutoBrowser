@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
 using AutoBrowser.Models;
+using Serilog;
 
 namespace AutoBrowser.Services;
 
@@ -17,13 +18,19 @@ public class SettingsService : ISettingsService
             EnsureDataDir();
 
             if (!File.Exists(SettingsPath))
+            {
+                Log.Debug("Settings file not found, returning defaults");
                 return new AppSettings();
+            }
 
             var json = File.ReadAllText(SettingsPath);
-            return JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
+            var settings = JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
+            Log.Debug("Settings loaded: {Settings}", json.ReplaceLineEndings(" "));
+            return settings;
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Warning(ex, "Failed to load settings, returning defaults");
             return new AppSettings();
         }
     }
@@ -34,11 +41,15 @@ public class SettingsService : ISettingsService
 
         var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(SettingsPath, json);
+        Log.Debug("Settings saved: {Settings}", json.ReplaceLineEndings(" "));
     }
 
     private static void EnsureDataDir()
     {
         if (!Directory.Exists(DataDir))
+        {
+            Log.Debug("Creating data directory: {Path}", DataDir);
             Directory.CreateDirectory(DataDir);
+        }
     }
 }

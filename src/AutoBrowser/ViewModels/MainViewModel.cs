@@ -1,73 +1,62 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Input;
 using AutoBrowser.Models;
 using AutoBrowser.Services;
 using AutoBrowser.Views;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Serilog;
 
 namespace AutoBrowser.ViewModels;
 
-public class MainViewModel : INotifyPropertyChanged
+public partial class MainViewModel : ObservableObject
 {
     private readonly IRuleService _ruleService;
     private readonly IProtocolService _protocolService;
     private readonly IDefaultBrowserService _defaultBrowserService;
     private readonly ISettingsService _settingsService;
     private readonly UpdateService _updateService = new();
-    private RoutingRule? _selectedRule;
-    private bool _isDarkTheme;
-    private string _status = "Ready";
-    private string _updateStatus = "";
-    private bool _isCheckingUpdate;
-    private bool _isDownloadingUpdate;
-    private BrowserDefinition? _fallbackBrowser;
 
     public ObservableCollection<RoutingRule> Rules { get; } = [];
     public List<BrowserDefinition> AvailableBrowsers { get; } = BrowserDefinition.GetKnownBrowsers();
 
-    public string Status
-    {
-        get => _status;
-        set { _status = value; OnPropertyChanged(); }
-    }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ThemeLabel))]
+    private bool _isDarkTheme;
 
-    public RoutingRule? SelectedRule
-    {
-        get => _selectedRule;
-        set { _selectedRule = value; OnPropertyChanged(); }
-    }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanCheckForUpdate))]
+    private bool _isCheckingUpdate;
 
-    public BrowserDefinition? FallbackBrowser
-    {
-        get => _fallbackBrowser;
-        set
-        {
-            _fallbackBrowser = value;
-            var settings = _settingsService.LoadSettings();
-            settings.FallbackBrowserPath = value?.ExecutablePath ?? string.Empty;
-            _settingsService.SaveSettings(settings);
-            Status = value is not null ? $"Fallback: {value.DisplayName}" : "Fallback browser cleared";
-            OnPropertyChanged();
-        }
-    }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanCheckForUpdate))]
+    private bool _isDownloadingUpdate;
 
-    public bool IsDarkTheme
-    {
-        get => _isDarkTheme;
-        set
-        {
-            _isDarkTheme = value;
-            ((App)System.Windows.Application.Current).ApplyTheme(value ? AppThemeMode.Dark : AppThemeMode.Light);
-            Status = value ? "Switched to Dark theme" : "Switched to Light theme";
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(ThemeLabel));
-        }
-    }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectedRule))]
+    private RoutingRule? _selectedRule;
 
-    public string ThemeLabel => _isDarkTheme ? "Dark" : "Light";
+    [ObservableProperty]
+    private string _status = "Ready";
+
+    [ObservableProperty]
+    private string _updateStatus = "";
+
+    [ObservableProperty]
+    private BrowserDefinition? _fallbackBrowser;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TrayLabel))]
+    private bool _minimizeToTray = true;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TrayLabel))]
+    private bool _closeToTray = true;
+
+    public string ThemeLabel => IsDarkTheme ? "Dark" : "Light";
+    public string TrayLabel => (MinimizeToTray || CloseToTray) ? "Tray" : "Exit";
+    public bool CanCheckForUpdate => !IsCheckingUpdate && !IsDownloadingUpdate;
+    public bool HasSelectedRule => SelectedRule is not null;
 
     public bool IsProtocolRegistered
     {
@@ -107,34 +96,6 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    public string UpdateStatus
-    {
-        get => _updateStatus;
-        set { _updateStatus = value; OnPropertyChanged(); }
-    }
-
-    public bool IsCheckingUpdate
-    {
-        get => _isCheckingUpdate;
-        set { _isCheckingUpdate = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanCheckForUpdate)); }
-    }
-
-    public bool IsDownloadingUpdate
-    {
-        get => _isDownloadingUpdate;
-        set { _isDownloadingUpdate = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanCheckForUpdate)); }
-    }
-
-    public bool CanCheckForUpdate => !IsCheckingUpdate && !IsDownloadingUpdate;
-
-    public ICommand AddRuleCommand { get; }
-    public ICommand EditRuleCommand { get; }
-    public ICommand DeleteRuleCommand { get; }
-    public ICommand MoveUpCommand { get; }
-    public ICommand MoveDownCommand { get; }
-    public ICommand LaunchUrlCommand { get; }
-    public ICommand CheckForUpdateCommand { get; }
-
     public MainViewModel()
     {
         _ruleService = new RuleService();
@@ -151,13 +112,40 @@ public class MainViewModel : INotifyPropertyChanged
             _fallbackBrowser = AvailableBrowsers.FirstOrDefault(b =>
                 b.ExecutablePath.Equals(settings.FallbackBrowserPath, StringComparison.OrdinalIgnoreCase));
 
-        AddRuleCommand = new RelayCommand(_ => AddRule());
-        EditRuleCommand = new RelayCommand(_ => EditRule(), _ => SelectedRule is not null);
-        DeleteRuleCommand = new RelayCommand(_ => DeleteRule(), _ => SelectedRule is not null);
-        MoveUpCommand = new RelayCommand(_ => MoveUp(), _ => SelectedRule is not null);
-        MoveDownCommand = new RelayCommand(_ => MoveDown(), _ => SelectedRule is not null);
-        LaunchUrlCommand = new RelayCommand(_ => LaunchUrl());
-        CheckForUpdateCommand = new RelayCommand(async _ => await CheckForUpdateAsync());
+        _minimizeToTray = settings.MinimizeToTray;
+        _closeToTray = settings.CloseToTray;
+    }
+
+    partial void OnIsDarkThemeChanged(bool value)
+    {
+        ((App)System.Windows.Application.Current).ApplyTheme(value ? AppThemeMode.Dark : AppThemeMode.Light);
+        Status = value ? "Switched to Dark theme" : "Switched to Light theme";
+    }
+
+    partial void OnFallbackBrowserChanged(BrowserDefinition? value)
+    {
+        var settings = _settingsService.LoadSettings();
+        settings.FallbackBrowserPath = value?.ExecutablePath ?? string.Empty;
+        _settingsService.SaveSettings(settings);
+        Status = value is not null ? $"Fallback: {value.DisplayName}" : "Fallback browser cleared";
+    }
+
+    partial void OnMinimizeToTrayChanged(bool value)
+    {
+        Log.Debug("MinimizeToTray changed to {Value}", value);
+        var settings = _settingsService.LoadSettings();
+        settings.MinimizeToTray = value;
+        _settingsService.SaveSettings(settings);
+        Status = value ? "Minimize to tray enabled" : "Minimize to tray disabled";
+    }
+
+    partial void OnCloseToTrayChanged(bool value)
+    {
+        Log.Debug("CloseToTray changed to {Value}", value);
+        var settings = _settingsService.LoadSettings();
+        settings.CloseToTray = value;
+        _settingsService.SaveSettings(settings);
+        Status = value ? "Close to tray enabled" : "Close to tray disabled";
     }
 
     public void StartSilentUpdateCheck()
@@ -187,6 +175,84 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    [RelayCommand]
+    private void AddRule()
+    {
+        var dialog = new RuleEditorView();
+        if (dialog.ShowDialog() == true)
+        {
+            Rules.Add(dialog.Rule);
+            SelectedRule = dialog.Rule;
+            SaveRules();
+            Status = $"Rule \"{dialog.Rule.Name}\" added";
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(HasSelectedRule))]
+    private void EditRule()
+    {
+        if (SelectedRule is null) return;
+
+        var index = Rules.IndexOf(SelectedRule);
+        var dialog = new RuleEditorView(SelectedRule);
+        if (dialog.ShowDialog() == true)
+        {
+            Rules[index] = dialog.Rule;
+            SelectedRule = dialog.Rule;
+            SaveRules();
+            Status = $"Rule \"{dialog.Rule.Name}\" updated";
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(HasSelectedRule))]
+    private void DeleteRule()
+    {
+        if (SelectedRule is null) return;
+        var name = SelectedRule.Name;
+        Rules.Remove(SelectedRule);
+        SaveRules();
+        Status = $"Rule \"{name}\" deleted";
+    }
+
+    [RelayCommand(CanExecute = nameof(HasSelectedRule))]
+    private void MoveUp() => MoveRule(-1);
+
+    [RelayCommand(CanExecute = nameof(HasSelectedRule))]
+    private void MoveDown() => MoveRule(1);
+
+    private void MoveRule(int direction)
+    {
+        if (SelectedRule is null) return;
+
+        var index = Rules.IndexOf(SelectedRule);
+        var newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= Rules.Count) return;
+
+        Rules.Move(index, newIndex);
+        SaveRules();
+        Status = $"Rule \"{SelectedRule.Name}\" moved";
+    }
+
+    [RelayCommand]
+    private void LaunchUrl()
+    {
+        var dialog = new RuleTesterView("Test URL", "Enter URL to test routing:");
+        dialog.ShowDialog();
+        var url = dialog.Result;
+        if (string.IsNullOrWhiteSpace(url)) return;
+
+        var interceptor = new UrlInterceptorService(_ruleService, _defaultBrowserService);
+        var browser = interceptor.TryRoute(url, FallbackBrowser?.ExecutablePath);
+        if (browser is not null)
+            Status = $"Routed via {browser}: {url}";
+        else
+        {
+            Status = $"No match: {url}";
+            ShowNotification("AutoBrowser", $"No rule matched and no fallback browser configured.\n{url}");
+        }
+    }
+
+    [RelayCommand]
     private async Task CheckForUpdateAsync()
     {
         if (IsCheckingUpdate || IsDownloadingUpdate) return;
@@ -275,83 +341,6 @@ public class MainViewModel : INotifyPropertyChanged
         _ruleService.SaveRules([..Rules]);
     }
 
-    private void AddRule()
-    {
-        var dialog = new RuleEditorView();
-        if (dialog.ShowDialog() == true)
-        {
-            Rules.Add(dialog.Rule);
-            SelectedRule = dialog.Rule;
-            SaveRules();
-            Status = $"Rule \"{dialog.Rule.Name}\" added";
-        }
-    }
-
-    private void EditRule()
-    {
-        if (SelectedRule is null) return;
-
-        var index = Rules.IndexOf(SelectedRule);
-        var dialog = new RuleEditorView(SelectedRule);
-        if (dialog.ShowDialog() == true)
-        {
-            Rules[index] = dialog.Rule;
-            SelectedRule = dialog.Rule;
-            SaveRules();
-            Status = $"Rule \"{dialog.Rule.Name}\" updated";
-        }
-    }
-
-    private void DeleteRule()
-    {
-        if (SelectedRule is null) return;
-        var name = SelectedRule.Name;
-        Rules.Remove(SelectedRule);
-        SaveRules();
-        Status = $"Rule \"{name}\" deleted";
-    }
-
-    private void MoveUp()
-    {
-        MoveRule(-1);
-    }
-
-    private void MoveDown()
-    {
-        MoveRule(1);
-    }
-
-    private void MoveRule(int direction)
-    {
-        if (SelectedRule is null) return;
-
-        var index = Rules.IndexOf(SelectedRule);
-        var newIndex = index + direction;
-        if (newIndex < 0 || newIndex >= Rules.Count) return;
-
-        Rules.Move(index, newIndex);
-        SaveRules();
-        Status = $"Rule \"{SelectedRule.Name}\" moved";
-    }
-
-    private void LaunchUrl()
-    {
-        var dialog = new RuleTesterView("Test URL", "Enter URL to test routing:");
-        dialog.ShowDialog();
-        var url = dialog.Result;
-        if (string.IsNullOrWhiteSpace(url)) return;
-
-        var interceptor = new UrlInterceptorService(_ruleService, _defaultBrowserService);
-        var browser = interceptor.TryRoute(url, FallbackBrowser?.ExecutablePath);
-        if (browser is not null)
-            Status = $"Routed via {browser}: {url}";
-        else
-        {
-            Status = $"No match: {url}";
-            ShowNotification("AutoBrowser", $"No rule matched and no fallback browser configured.\n{url}");
-        }
-    }
-
     private static void ShowNotification(string title, string message)
     {
         try
@@ -366,13 +355,6 @@ public class MainViewModel : INotifyPropertyChanged
                 System.Windows.Forms.ToolTipIcon.Warning);
         }
         catch { }
-    }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
 
