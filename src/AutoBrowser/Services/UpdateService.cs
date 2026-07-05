@@ -82,7 +82,7 @@ public class UpdateService
         if (asset is null)
             throw new InvalidOperationException("No suitable update asset found.");
 
-        var appDir = AppContext.BaseDirectory;
+        var appDir = AppContext.BaseDirectory.TrimEnd('\\', '/');
         var currentPid = Environment.ProcessId;
         var workspace = Path.Combine(Path.GetTempPath(), "AutoBrowserUpdate", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(workspace);

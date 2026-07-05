@@ -145,7 +145,7 @@ internal static class Program
             if (arg.StartsWith("--") && i + 1 < args.Length)
             {
                 var key = arg;
-                var value = args[i + 1];
+                var value = args[i + 1].Trim('"');
                 result[key] = value;
                 i++; // Skip the value
             }
