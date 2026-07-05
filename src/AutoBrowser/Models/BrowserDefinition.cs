@@ -13,6 +13,7 @@ public class BrowserDefinition
     public static List<BrowserDefinition> GetKnownBrowsers()
     {
         var browsers = new List<BrowserDefinition>();
+        var selfPath = Environment.ProcessPath ?? "";
         var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
         var programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -20,6 +21,7 @@ public class BrowserDefinition
         void TryAdd(string name, string displayName, string path, string args = "{url}")
         {
             if (!string.IsNullOrEmpty(path) && File.Exists(path) &&
+                !path.Equals(selfPath, StringComparison.OrdinalIgnoreCase) &&
                 browsers.All(b => !b.ExecutablePath.Equals(path, StringComparison.OrdinalIgnoreCase)))
             {
                 browsers.Add(new BrowserDefinition
@@ -33,11 +35,11 @@ public class BrowserDefinition
         }
 
         TryAdd("edge", "Microsoft Edge",
-            Path.Combine(programFiles, "Microsoft", "Edge", "Application", "msedge.exe"));
+            Path.Combine(programFiles, "Microsoft", "Edge", "Application", "msedge.exe"), "--new-tab {url}");
         TryAdd("edge_x86", "Microsoft Edge",
-            Path.Combine(programFilesX86 ?? "", "Microsoft", "Edge", "Application", "msedge.exe"));
+            Path.Combine(programFilesX86 ?? "", "Microsoft", "Edge", "Application", "msedge.exe"), "--new-tab {url}");
         TryAdd("edge_user", "Microsoft Edge",
-            Path.Combine(localAppData, "Microsoft", "Edge", "Application", "msedge.exe"));
+            Path.Combine(localAppData, "Microsoft", "Edge", "Application", "msedge.exe"), "--new-tab {url}");
         TryAdd("chrome", "Google Chrome",
             Path.Combine(programFiles, "Google", "Chrome", "Application", "chrome.exe"));
         TryAdd("chrome_x86", "Google Chrome",
@@ -162,6 +164,7 @@ public class BrowserDefinition
 
             var path = ParseExePath(cmd);
             if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
+            if (path.Equals(Environment.ProcessPath, StringComparison.OrdinalIgnoreCase)) return;
 
             if (browsers.All(b => !b.ExecutablePath.Equals(path, StringComparison.OrdinalIgnoreCase)))
             {
@@ -204,6 +207,7 @@ public class BrowserDefinition
 
                     var exePath = ParseExePath(cmd);
                     if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath)) continue;
+                    if (exePath.Equals(Environment.ProcessPath, StringComparison.OrdinalIgnoreCase)) continue;
                     if (browsers.Any(b => b.ExecutablePath.Equals(exePath, StringComparison.OrdinalIgnoreCase)))
                         continue;
 
