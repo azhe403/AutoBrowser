@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
-using System.Text;
+using Serilog;
 
 namespace AutoUpdater;
 
@@ -11,131 +11,196 @@ internal static class Program
     private const int MaxRetries = 5;
     private const int RetryDelayMs = 500;
 
-    private static readonly string BackupDir = Path.Combine(
-        Path.GetTempPath(), "AutoBrowserUpdate", "backup");
-
     private static string? _appDir;
+    private static string? _backupDir;
 
     static async Task<int> Main(string[] args)
     {
+        // Determine app directory from --exe argument for log placement
+        var parsedArgsPre = ParseArguments(args);
+        var appDirForLog = ".";
+        if (parsedArgsPre.TryGetValue("--exe", out var exePath) && !string.IsNullOrEmpty(exePath))
+        {
+            appDirForLog = Path.GetDirectoryName(exePath) ?? ".";
+        }
+
+        // Configure Serilog - logs in same directory as the app
+        var logDir = Path.Combine(appDirForLog, "Logs");
+        Directory.CreateDirectory(logDir);
+        var logPath = Path.Combine(logDir, "updater-.log");
+
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.File(logPath,
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 7,
+                outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff}] [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .CreateLogger();
+
         try
         {
-            if (args.Length < 3)
+            Log.Information("=== AutoUpdater Started ===");
+            Log.Information("Args: {Args}", string.Join(" ", args));
+
+            // Parse named arguments: --pid, --source, --target, --exe, --workspace
+            var parsedArgs = ParseArguments(args);
+
+            if (!parsedArgs.TryGetValue("--pid", out var pidStr) || !int.TryParse(pidStr, out var appPid))
             {
-                Console.Error.WriteLine("Usage: AutoUpdater <appPid> <updateWorkspace> <appExePath>");
+                Log.Error("Missing or invalid --pid argument");
                 return 1;
             }
 
-            if (!int.TryParse(args[0], out var appPid))
+            if (!parsedArgs.TryGetValue("--source", out var updateWorkspace) || string.IsNullOrEmpty(updateWorkspace))
             {
-                Console.Error.WriteLine($"Invalid PID: {args[0]}");
+                Log.Error("Missing or invalid --source argument");
                 return 1;
             }
 
-            var updateWorkspace = args[1];
-            var appExePath = args[2];
-            _appDir = Path.GetDirectoryName(appExePath);
-
-            if (string.IsNullOrEmpty(_appDir) || !Directory.Exists(_appDir))
+            if (!parsedArgs.TryGetValue("--exe", out var appExePath) || string.IsNullOrEmpty(appExePath))
             {
-                Console.Error.WriteLine($"App directory not found: {_appDir}");
+                Log.Error("Missing or invalid --exe argument");
+                return 1;
+            }
+
+            _appDir = Path.GetDirectoryName(appExePath) ?? ".";
+            _backupDir = Path.Combine(_appDir, "UpdateBackup");
+
+            if (!Directory.Exists(_appDir))
+            {
+                Log.Error("App directory not found: {AppDir}", _appDir);
                 return 1;
             }
 
             if (!Directory.Exists(updateWorkspace))
             {
-                Console.Error.WriteLine($"Update workspace not found: {updateWorkspace}");
+                Log.Error("Update workspace not found: {Workspace}", updateWorkspace);
                 return 1;
             }
 
-            Console.WriteLine($"Waiting for process {appPid} to exit...");
+            Log.Information("Waiting for process {Pid} to exit...", appPid);
             try
             {
                 var process = Process.GetProcessById(appPid);
                 if (!process.WaitForExit((int)WaitTimeout.TotalMilliseconds))
                 {
-                    Console.Error.WriteLine("Timed out waiting for main process to exit.");
+                    Log.Warning("Timed out waiting for main process to exit, killing...");
                     process.Kill(entireProcessTree: true);
                 }
+                Log.Information("Main process exited");
             }
             catch (ArgumentException)
             {
-                // Process already exited
+                Log.Information("Main process already exited");
             }
 
-            Console.WriteLine("Backing up current files...");
+            Log.Information("Backing up current files...");
             CleanBackup();
-            Directory.CreateDirectory(BackupDir);
+            Directory.CreateDirectory(_backupDir);
             BackupFiles();
 
-            Console.WriteLine("Copying update files...");
+            Log.Information("Copying update files from {Source} to {Dest}...", updateWorkspace, _appDir);
             if (!TryCopyWithRetry(updateWorkspace, _appDir))
             {
-                Console.WriteLine("Update failed. Rolling back...");
+                Log.Error("Update copy failed, rolling back...");
                 RestoreBackup();
                 return 1;
             }
 
-            Console.WriteLine("Verifying update...");
+            Log.Information("Verifying update...");
             if (!VerifyUpdate(updateWorkspace))
             {
-                Console.WriteLine("Verification failed. Rolling back...");
+                Log.Error("Verification failed, rolling back...");
                 RestoreBackup();
                 return 1;
             }
 
             CleanBackup();
 
-            Console.WriteLine("Update successful. Restarting app...");
+            Log.Information("Update successful. Restarting app: {Exe}", appExePath);
             StartApp(appExePath);
 
+            Log.Information("=== AutoUpdater Finished ===");
             return 0;
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Fatal error: {ex.Message}");
+            Log.Fatal(ex, "Fatal error");
             RestoreBackup();
             return 1;
         }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
+    }
+
+    private static Dictionary<string, string> ParseArguments(string[] args)
+    {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        for (int i = 0; i < args.Length; i++)
+        {
+            var arg = args[i];
+            if (arg.StartsWith("--") && i + 1 < args.Length)
+            {
+                var key = arg;
+                var value = args[i + 1];
+                result[key] = value;
+                i++; // Skip the value
+            }
+        }
+
+        return result;
     }
 
     private static void BackupFiles()
     {
-        foreach (var file in Directory.EnumerateFiles(_appDir!, "*", SearchOption.TopDirectoryOnly))
+        if (_appDir is null || _backupDir is null) return;
+
+        foreach (var file in Directory.EnumerateFiles(_appDir, "*", SearchOption.TopDirectoryOnly))
         {
-            var dest = Path.Combine(BackupDir, Path.GetFileName(file));
+            var dest = Path.Combine(_backupDir, Path.GetFileName(file));
             File.Copy(file, dest, overwrite: true);
+            Log.Verbose("Backed up: {File}", Path.GetFileName(file));
         }
+        Log.Debug("Backed up {Count} files", Directory.GetFiles(_backupDir).Length);
     }
 
     private static void RestoreBackup()
     {
-        if (!Directory.Exists(BackupDir)) return;
+        if (!Directory.Exists(_backupDir)) return;
 
-        foreach (var file in Directory.EnumerateFiles(BackupDir, "*", SearchOption.TopDirectoryOnly))
+        Log.Information("Restoring backup...");
+        foreach (var file in Directory.EnumerateFiles(_backupDir, "*", SearchOption.TopDirectoryOnly))
         {
             var dest = Path.Combine(_appDir!, Path.GetFileName(file));
             try
             {
                 File.Copy(file, dest, overwrite: true);
+                Log.Verbose("Restored: {File}", Path.GetFileName(file));
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Rollback error for {file}: {ex.Message}");
+                Log.Error(ex, "Rollback error for {File}", Path.GetFileName(file));
             }
         }
+        Log.Debug("Backup restore completed");
     }
 
     private static void CleanBackup()
     {
         try
         {
-            if (Directory.Exists(BackupDir))
-                Directory.Delete(BackupDir, recursive: true);
+            if (Directory.Exists(_backupDir))
+            {
+                Directory.Delete(_backupDir, recursive: true);
+                Log.Verbose("Cleaned backup directory");
+            }
         }
-        catch
+        catch (Exception ex)
         {
-            // Best effort
+            Log.Warning(ex, "Failed to clean backup directory");
         }
     }
 
@@ -149,17 +214,19 @@ internal static class Program
                 {
                     var dest = Path.Combine(destDir, Path.GetFileName(file));
                     File.Copy(file, dest, overwrite: true);
+                    Log.Verbose("Copied: {File}", Path.GetFileName(file));
                 }
+                Log.Debug("Copy completed on attempt {Attempt}", attempt);
                 return true;
             }
             catch (Exception ex) when (attempt < MaxRetries)
             {
-                Console.WriteLine($"Copy attempt {attempt} failed: {ex.Message}. Retrying...");
+                Log.Warning(ex, "Copy attempt {Attempt} failed, retrying...", attempt);
                 Thread.Sleep(RetryDelayMs);
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Copy failed after {MaxRetries} attempts: {ex.Message}");
+                Log.Error(ex, "Copy failed after {MaxRetries} attempts", MaxRetries);
                 return false;
             }
         }
@@ -168,16 +235,27 @@ internal static class Program
 
     private static bool VerifyUpdate(string updateWorkspace)
     {
+        var verified = 0;
         foreach (var updateFile in Directory.EnumerateFiles(updateWorkspace, "*", SearchOption.TopDirectoryOnly))
         {
             var fileName = Path.GetFileName(updateFile);
             var destFile = Path.Combine(_appDir!, fileName);
-            if (!File.Exists(destFile)) return false;
+            if (!File.Exists(destFile))
+            {
+                Log.Error("Verification failed: {File} not found after copy", fileName);
+                return false;
+            }
 
             var updateHash = ComputeSha256(updateFile);
             var destHash = ComputeSha256(destFile);
-            if (!updateHash.SequenceEqual(destHash)) return false;
+            if (!updateHash.SequenceEqual(destHash))
+            {
+                Log.Error("Verification failed: {File} hash mismatch", fileName);
+                return false;
+            }
+            verified++;
         }
+        Log.Debug("Verified {Count} files", verified);
         return true;
     }
 
@@ -199,10 +277,11 @@ internal static class Program
                 WorkingDirectory = _appDir
             };
             Process.Start(psi);
+            Log.Information("App restarted successfully");
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Failed to restart app: {ex.Message}");
+            Log.Error(ex, "Failed to restart app");
         }
     }
 }
