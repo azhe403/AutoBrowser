@@ -18,7 +18,7 @@ Order (duplicates skipped by EXE path):
 - Asset selection: picks ZIP matching "self-contained" or "framework-dependent" based on `coreclr.dll` presence
 
 ## AutoUpdater (src/AutoUpdater/)
-- **AOT** (`PublishAot=true`) console helper EXE (`AutoUpdater.exe`)
+- **Single-file** (`PublishSingleFile=true`, `SelfContained=false`) console helper EXE (`AutoUpdater.exe`)
 - Waits for main process to exit (2 min timeout)
 - Backs up old files, copies new ones with SHA256 validation + 5 retries
 - Rollback on failure, relaunches main app on success
@@ -32,8 +32,8 @@ $1
 - **Auto-merge**: Default rules merged with saved by `Name` (case-insensitive). New defaults not present in saved are appended. Never overwrites user modifications.
 
 ### Settings (`Data/settings.json`)
-- Single `AppSettings` object (`ThemeMode`)
-- Save triggers: Theme toggle change
+- `AppSettings` object: `ThemeMode`, `LastTestUrl`, `FallbackBrowserPath`, `MinimizeToTray`, `CloseToTray`
+- Save triggers: Theme toggle, fallback browser change, tray toggle changes
 
 ## Registry Registration
 ### Protocol Handler (`autobrowser://`)

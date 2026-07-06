@@ -10,10 +10,11 @@
 
 ## System Tray
 - `NotifyIcon` with app icon + context menu (Show Window, Exit)
-- Minimize → hides to tray (`Window_StateChanged`)
-- Close → minimizes to tray (cancel `Closing` event)
+- Minimize → hides to tray (`Window_StateChanged`) — when `MinimizeToTray` enabled
+- Close → minimizes to tray (cancel `Closing` event) — when `CloseToTray` enabled
 - Only Exit menu item truly terminates
 - `SaveRules()` called on close
+- Both options persist to `Data/settings.json`
 
 ## Update Check
 - **Button**: "Check Update" in toolbar, bound to `CheckForUpdateCommand`, disabled while checking/downloading

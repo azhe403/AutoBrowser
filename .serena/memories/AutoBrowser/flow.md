@@ -33,15 +33,15 @@ $1
 ```
 URL arrives (autobrowser:// or default click)
   → App.OnStartup (CLI args) or MainWindow.OnLoaded (second instance)
-  → UrlInterceptorService.TryRoute(url)
+  → UrlInterceptorService.TryRoute(url, fallbackBrowserPath)
       1. StripProtocolPrefix()
       2. LoadRules() from Data/rules.json
       3. Filter IsEnabled=true
       4. Sort by Priority ASC
       5. First regex/substring match → Launch browser
       6. No match → fallback:
-           a. Saved default browser EXE (Data/default_browser.txt) → direct launch
-           b. Else → ShellExecute
+           a. Configured fallback browser (Data/settings.json → FallbackBrowserPath) → direct launch
+           b. Else → return null (caller shows notification)
 ```
 
 ## URL Pattern Matching (RoutingRule.IsMatch)

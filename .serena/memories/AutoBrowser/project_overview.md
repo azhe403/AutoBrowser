@@ -10,10 +10,11 @@ WPF .NET 10 app for routing URLs to different browsers based on configurable rul
 ```
 src/
 ├── AutoBrowser/                     — Main WPF app
-│   ├── Models/                      — RoutingRule, BrowserDefinition, AppSettings, ReleaseInfo
+│   ├── Models/                      — RoutingRule, BrowserDefinition, AppSettings
 │   ├── Services/                    — RuleService, SettingsService, ProtocolService,
-│   │                                  DefaultBrowserService, UrlInterceptorService, UpdateService
-│   ├── ViewModels/                  — MainViewModel, RelayCommand, RuleDialog, InputDialog
+│   │                                  DefaultBrowserService, UrlInterceptorService, UpdateService + ReleaseInfo
+│   ├── Views/                       — RuleEditorView, RuleTesterView
+│   ├── ViewModels/                  — MainViewModel, RelayCommand
 │   ├── MainWindow.xaml/.cs          — UI + tray icon
 │   ├── App.xaml/.cs                 — Single-instance, theme, CLI URL dispatch
 │   └── app.ico

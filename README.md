@@ -9,7 +9,9 @@ A Windows desktop app that routes URLs to user-configured browsers based on rege
 - **Protocol Handler** — Registers `autobrowser://` protocol so links open directly in AutoBrowser
 - **Default Browser Mode** — Optionally register as the system default browser to intercept all HTTP(S) links
 - **Infinite-Loop Protection** — Unmatched URLs launch the previous default browser directly by EXE path, not via shell association
-- **System Tray** — Minimizes to tray, only Exit fully terminates
+- **Fallback Browser** — Configurable fallback browser for unmatched URLs
+- **Auto-Update** — Check for updates from GitHub releases, download and apply with automatic backup/restore
+- **System Tray** — Minimize to tray and/or close to tray (independently configurable)
 - **Dark Mode** — Toggle Dark/Light theme
 - **Portable** — All data stored in `Data/` folder next to the executable
 
@@ -54,7 +56,9 @@ dotnet build src\AutoBrowser\AutoBrowser.csproj -o bin\staging
 
 - **.NET 10** (Windows, WPF)
 - **WPF UI** — Fluent Design controls and theming
-- **MVVM** — ViewModel pattern with `INotifyPropertyChanged`
+- **CommunityToolkit.Mvvm** — MVVM with source generators (`ObservableObject`, `RelayCommand`)
+- **Serilog** — Structured logging
+- **AutoUpdater** — Standalone AOT console EXE for file swap + relaunch
 
 ## License
 
