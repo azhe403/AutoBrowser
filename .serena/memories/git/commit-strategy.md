@@ -3,8 +3,13 @@
 ## Golden Rule
 **NEVER commit or push without explicit user permission.** Wait to be asked.
 
-## Split Large Changes
-When there are too many changes, split the commit into multiple logical commits instead of one large commit.
+## Split Per Logical Context — ALWAYS
+**Always split changes per logical context.** Group related edits together and separate unrelated changes into distinct commits or edits. Each commit/edit should represent one cohesive, meaningful change (e.g., a single feature, a bug fix, a refactor). Avoid mixing unrelated changes in the same commit or edit.
+
+This applies to:
+- Code commits — one logical change per commit
+- Memory updates — update only the relevant memory topic
+- File edits — keep edits focused on a single concern
 
 ## Natural Timing
 Add a random delay gap of 3 to 5 minutes between commits to make the commit history look natural (simulates human work pace).
