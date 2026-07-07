@@ -24,6 +24,7 @@ public partial class App : System.Windows.Application
             .WriteTo.File(
                 Path.Combine(logDir, "AutoBrowser-.log"),
                 rollingInterval: RollingInterval.Day,
+                shared: true,
                 outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff}] [{Level:u3}] {Message:lj}{NewLine}{Exception}",
                 retainedFileCountLimit: 14)
             .CreateLogger();
