@@ -14,6 +14,7 @@ public class BrowserDefinition
     {
         var browsers = new List<BrowserDefinition>();
         var selfPath = Environment.ProcessPath ?? "";
+        var selfFileName = Path.GetFileName(selfPath);
         var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
         var programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -21,7 +22,7 @@ public class BrowserDefinition
         void TryAdd(string name, string displayName, string path, string args = "{url}")
         {
             if (!string.IsNullOrEmpty(path) && File.Exists(path) &&
-                !path.Equals(selfPath, StringComparison.OrdinalIgnoreCase) &&
+                !Path.GetFileName(path).Equals(selfFileName, StringComparison.OrdinalIgnoreCase) &&
                 browsers.All(b => !b.ExecutablePath.Equals(path, StringComparison.OrdinalIgnoreCase)))
             {
                 browsers.Add(new BrowserDefinition
@@ -34,50 +35,28 @@ public class BrowserDefinition
             }
         }
 
-        TryAdd("edge", "Microsoft Edge",
-            Path.Combine(programFiles, "Microsoft", "Edge", "Application", "msedge.exe"));
-        TryAdd("edge_x86", "Microsoft Edge",
-            Path.Combine(programFilesX86 ?? "", "Microsoft", "Edge", "Application", "msedge.exe"));
-        TryAdd("edge_user", "Microsoft Edge",
-            Path.Combine(localAppData, "Microsoft", "Edge", "Application", "msedge.exe"));
-        TryAdd("chrome", "Google Chrome",
-            Path.Combine(programFiles, "Google", "Chrome", "Application", "chrome.exe"));
-        TryAdd("chrome_x86", "Google Chrome",
-            Path.Combine(programFilesX86 ?? "", "Google", "Chrome", "Application", "chrome.exe"));
-        TryAdd("chrome_user", "Google Chrome",
-            Path.Combine(localAppData, "Google", "Chrome", "Application", "chrome.exe"));
-        TryAdd("chrome_beta", "Google Chrome Beta",
-            Path.Combine(localAppData, "Google", "Chrome Beta", "Application", "chrome.exe"));
-        TryAdd("chrome_dev", "Google Chrome Dev",
-            Path.Combine(localAppData, "Google", "Chrome Dev", "Application", "chrome.exe"));
-        TryAdd("chrome_canary", "Google Chrome Canary",
-            Path.Combine(localAppData, "Google", "Chrome SxS", "Application", "chrome.exe"));
-        TryAdd("firefox", "Mozilla Firefox",
-            Path.Combine(programFiles, "Mozilla Firefox", "firefox.exe"));
-        TryAdd("firefox_x86", "Mozilla Firefox",
-            Path.Combine(programFilesX86 ?? "", "Mozilla Firefox", "firefox.exe"));
-        TryAdd("firefox_dev", "Firefox Developer Edition",
-            Path.Combine(localAppData, "Firefox Developer Edition", "firefox.exe"));
-        TryAdd("firefox_nightly", "Firefox Nightly",
-            Path.Combine(localAppData, "Firefox Nightly", "firefox.exe"));
-        TryAdd("opera", "Opera",
-            Path.Combine(programFiles, "Opera", "launcher.exe"));
-        TryAdd("opera_x86", "Opera",
-            Path.Combine(programFilesX86 ?? "", "Opera", "launcher.exe"));
-        TryAdd("opera_gx", "Opera GX",
-            Path.Combine(localAppData, "Programs", "Opera GX", "launcher.exe"));
-        TryAdd("brave", "Brave",
-            Path.Combine(programFiles, "BraveSoftware", "Brave-Browser", "Application", "brave.exe"));
-        TryAdd("brave_x86", "Brave",
-            Path.Combine(programFilesX86 ?? "", "BraveSoftware", "Brave-Browser", "Application", "brave.exe"));
-        TryAdd("brave_user", "Brave",
-            Path.Combine(localAppData, "BraveSoftware", "Brave-Browser", "Application", "brave.exe"));
-        TryAdd("brave_beta", "Brave Beta",
-            Path.Combine(localAppData, "BraveSoftware", "Brave-Browser-Beta", "Application", "brave.exe"));
-        TryAdd("brave_nightly", "Brave Nightly",
-            Path.Combine(localAppData, "BraveSoftware", "Brave-Browser-Nightly", "Application", "brave.exe"));
-        TryAdd("vivaldi", "Vivaldi",
-            Path.Combine(programFiles, "Vivaldi", "Application", "vivaldi.exe"));
+        TryAdd("edge", "Microsoft Edge", Path.Combine(programFiles, "Microsoft", "Edge", "Application", "msedge.exe"));
+        TryAdd("edge_x86", "Microsoft Edge", Path.Combine(programFilesX86 ?? "", "Microsoft", "Edge", "Application", "msedge.exe"));
+        TryAdd("edge_user", "Microsoft Edge", Path.Combine(localAppData, "Microsoft", "Edge", "Application", "msedge.exe"));
+        TryAdd("chrome", "Google Chrome", Path.Combine(programFiles, "Google", "Chrome", "Application", "chrome.exe"));
+        TryAdd("chrome_x86", "Google Chrome", Path.Combine(programFilesX86 ?? "", "Google", "Chrome", "Application", "chrome.exe"));
+        TryAdd("chrome_user", "Google Chrome", Path.Combine(localAppData, "Google", "Chrome", "Application", "chrome.exe"));
+        TryAdd("chrome_beta", "Google Chrome Beta", Path.Combine(localAppData, "Google", "Chrome Beta", "Application", "chrome.exe"));
+        TryAdd("chrome_dev", "Google Chrome Dev", Path.Combine(localAppData, "Google", "Chrome Dev", "Application", "chrome.exe"));
+        TryAdd("chrome_canary", "Google Chrome Canary", Path.Combine(localAppData, "Google", "Chrome SxS", "Application", "chrome.exe"));
+        TryAdd("firefox", "Mozilla Firefox", Path.Combine(programFiles, "Mozilla Firefox", "firefox.exe"));
+        TryAdd("firefox_x86", "Mozilla Firefox", Path.Combine(programFilesX86 ?? "", "Mozilla Firefox", "firefox.exe"));
+        TryAdd("firefox_dev", "Firefox Developer Edition", Path.Combine(localAppData, "Firefox Developer Edition", "firefox.exe"));
+        TryAdd("firefox_nightly", "Firefox Nightly", Path.Combine(localAppData, "Firefox Nightly", "firefox.exe"));
+        TryAdd("opera", "Opera", Path.Combine(programFiles, "Opera", "launcher.exe"));
+        TryAdd("opera_x86", "Opera", Path.Combine(programFilesX86 ?? "", "Opera", "launcher.exe"));
+        TryAdd("opera_gx", "Opera GX", Path.Combine(localAppData, "Programs", "Opera GX", "launcher.exe"));
+        TryAdd("brave", "Brave", Path.Combine(programFiles, "BraveSoftware", "Brave-Browser", "Application", "brave.exe"));
+        TryAdd("brave_x86", "Brave", Path.Combine(programFilesX86 ?? "", "BraveSoftware", "Brave-Browser", "Application", "brave.exe"));
+        TryAdd("brave_user", "Brave", Path.Combine(localAppData, "BraveSoftware", "Brave-Browser", "Application", "brave.exe"));
+        TryAdd("brave_beta", "Brave Beta", Path.Combine(localAppData, "BraveSoftware", "Brave-Browser-Beta", "Application", "brave.exe"));
+        TryAdd("brave_nightly", "Brave Nightly", Path.Combine(localAppData, "BraveSoftware", "Brave-Browser-Nightly", "Application", "brave.exe"));
+        TryAdd("vivaldi", "Vivaldi", Path.Combine(programFiles, "Vivaldi", "Application", "vivaldi.exe"));
 
         ScanLocalAppDataForBrowsers(browsers, localAppData);
 
@@ -164,7 +143,7 @@ public class BrowserDefinition
 
             var path = ParseExePath(cmd);
             if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
-            if (path.Equals(Environment.ProcessPath, StringComparison.OrdinalIgnoreCase)) return;
+            if (Path.GetFileName(path).Equals(Path.GetFileName(Environment.ProcessPath ?? ""), StringComparison.OrdinalIgnoreCase)) return;
 
             if (browsers.All(b => !b.ExecutablePath.Equals(path, StringComparison.OrdinalIgnoreCase)))
             {
@@ -207,7 +186,7 @@ public class BrowserDefinition
 
                     var exePath = ParseExePath(cmd);
                     if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath)) continue;
-                    if (exePath.Equals(Environment.ProcessPath, StringComparison.OrdinalIgnoreCase)) continue;
+                    if (Path.GetFileName(exePath).Equals(Path.GetFileName(Environment.ProcessPath ?? ""), StringComparison.OrdinalIgnoreCase)) continue;
                     if (browsers.Any(b => b.ExecutablePath.Equals(exePath, StringComparison.OrdinalIgnoreCase)))
                         continue;
 

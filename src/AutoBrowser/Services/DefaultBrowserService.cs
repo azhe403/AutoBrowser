@@ -124,6 +124,21 @@ public class DefaultBrowserService : IDefaultBrowserService
         catch { }
     }
 
+    public string? GetRegisteredPath()
+    {
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey($@"Software\Classes\{ProgId}\shell\open\command");
+            var cmd = key?.GetValue("") as string;
+            if (string.IsNullOrEmpty(cmd)) return null;
+            return ParseExePath(cmd);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     private static string? GetCurrentDefaultBrowserPath()
     {
         try

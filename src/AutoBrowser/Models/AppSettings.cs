@@ -12,4 +12,5 @@ public class AppSettings
     public double WindowLeft { get; set; } = -1;
     public double WindowTop { get; set; } = -1;
     public bool IsMaximized { get; set; }
+    public DateTime LastUpdateCheckTime { get; set; } = DateTime.MinValue;
 }

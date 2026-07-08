@@ -57,4 +57,28 @@ public class ProtocolService : IProtocolService
             return false;
         }
     }
+
+    public string? GetRegisteredPath()
+    {
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey($@"Software\Classes\{ProtocolName}\shell\open\command");
+            var cmd = key?.GetValue("") as string;
+            if (string.IsNullOrEmpty(cmd)) return null;
+
+            // Extract path from: "path" "%1"
+            cmd = cmd.Trim();
+            if (cmd.StartsWith('"'))
+            {
+                var end = cmd.IndexOf('"', 1);
+                return end > 0 ? cmd[1..end] : null;
+            }
+            var space = cmd.IndexOf(' ');
+            return space > 0 ? cmd[..space] : cmd;
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }
