@@ -1,0 +1,79 @@
+<UserControl x:Class="AutoBrowser.Views.RulesListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Rule list -->
+        <ui:ListView x:Name="RuleListView" Grid.Row="0"
+                     ItemsSource="{Binding Rules}"
+                     SelectedItem="{Binding SelectedRule}"
+                     SelectionMode="Single">
+            <ui:ListView.ItemTemplate>
+                <DataTemplate>
+                    <Border Padding="10,8" Margin="0,2"
+                            Background="{DynamicResource CardBackgroundBrush}"
+                            BorderBrush="{DynamicResource ControlElevationBorderBrush}"
+                            BorderThickness="1" CornerRadius="6">
+                        <Border.InputBindings>
+                            <MouseBinding MouseAction="LeftDoubleClick"
+                                          Command="{Binding DataContext.EditRuleCommand, RelativeSource={RelativeSource AncestorType=ui:ListView}}" />
+                        </Border.InputBindings>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <CheckBox Grid.Column="0" IsChecked="{Binding IsEnabled}"
+                                      VerticalAlignment="Top" Margin="0,2,10,0"/>
+
+                            <StackPanel Grid.Column="1">
+                                <!-- Row 1: Rule name + browser -->
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                    <TextBlock Text="  —  " Opacity="0.4"
+                                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                    <TextBlock Text="{Binding BrowserDisplayName}" Opacity="0.7"
+                                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                    <TextBlock Text="  —  " Opacity="0.4"
+                                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                    <TextBlock Text="{Binding BrowserPath}" Opacity="0.4"
+                                               TextTrimming="CharacterEllipsis"
+                                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                </StackPanel>
+
+                                <!-- Row 2: Sequence + pattern -->
+                                <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                    <Border Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                            CornerRadius="3" Padding="5,1" Margin="0,0,6,0">
+                                        <TextBlock Text="{Binding Sequence, StringFormat='#{0}'}" FontSize="11"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                                    </Border>
+                                    <TextBlock Text="{Binding UrlPattern}" FontFamily="Consolas" FontSize="12"
+                                               TextTrimming="CharacterEllipsis"
+                                               Foreground="{DynamicResource TextFillColorTertiaryBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ui:ListView.ItemTemplate>
+        </ui:ListView>
+
+        <!-- Bottom-right registration checkboxes -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,4,0,0">
+            <CheckBox Content="autobrowser://" IsChecked="{Binding IsProtocolRegistered}"
+                      Margin="0,0,12,0" VerticalAlignment="Center"
+                      Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+            <CheckBox Content="Default browser" IsChecked="{Binding IsDefaultBrowser}"
+                      VerticalAlignment="Center"
+                      Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -20,7 +20,7 @@ public class UrlInterceptorServiceTests
     [Fact]
     public void TryRoute_NullUrl_ReturnsNull()
     {
-        var result = _sut.TryRoute(null);
+        var result = _sut.TryRoute(null!);
         Assert.Null(result);
     }
 

@@ -1,0 +1,42 @@
+<UserControl x:Class="AutoBrowser.Views.ToolbarView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <Border Padding="6,3"
+            Background="{DynamicResource CardBackgroundBrush}"
+            BorderBrush="{DynamicResource ControlElevationBorderBrush}"
+            BorderThickness="1" CornerRadius="4">
+        <DockPanel>
+            <!-- Right-aligned: Check Update -->
+            <ui:Button Content="Check Update" Command="{Binding CheckForUpdateCommand}"
+                       IsEnabled="{Binding CanCheckForUpdate}" DockPanel.Dock="Right"/>
+
+            <!-- Left-aligned groups -->
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Rule management -->
+                <ui:Button Content="Add" Command="{Binding AddRuleCommand}" Margin="0,0,3,0"/>
+                <ui:Button Content="Edit" Command="{Binding EditRuleCommand}" Margin="3,0"/>
+                <ui:Button Content="Delete" Command="{Binding DeleteRuleCommand}" Margin="3,0,0,0"/>
+
+                <Rectangle Width="1" Height="20" Fill="{DynamicResource ControlElevationBorderBrush}" Margin="6,0"/>
+
+                <!-- Rule ordering -->
+                <ui:Button Content="Move Up" Command="{Binding MoveUpCommand}" Margin="0,0,3,0"/>
+                <ui:Button Content="Move Down" Command="{Binding MoveDownCommand}"/>
+
+                <Rectangle Width="1" Height="20" Fill="{DynamicResource ControlElevationBorderBrush}" Margin="6,0"/>
+
+                <!-- Settings -->
+                <TextBlock Text="{Binding ThemeLabel}" Margin="0,0,2,0" VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                <ui:ToggleSwitch IsChecked="{Binding IsDarkTheme}"
+                                 VerticalAlignment="Center"/>
+
+                <Rectangle Width="1" Height="20" Fill="{DynamicResource ControlElevationBorderBrush}" Margin="6,0"/>
+
+                <!-- Tools -->
+                <ui:Button Content="Test URL" Command="{Binding LaunchUrlCommand}"/>
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</UserControl>

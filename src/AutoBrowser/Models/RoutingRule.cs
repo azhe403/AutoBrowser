@@ -1,16 +1,29 @@
 using System.IO;
 using System.Text.RegularExpressions;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace AutoBrowser.Models;
 
-public class RoutingRule
+public partial class RoutingRule : ObservableObject
 {
-    public string Name { get; set; } = string.Empty;
-    public string UrlPattern { get; set; } = string.Empty;
-    public string BrowserPath { get; set; } = string.Empty;
-    public string BrowserArguments { get; set; } = string.Empty;
-    public bool IsEnabled { get; set; } = true;
-    public int Sequence { get; set; }
+    [ObservableProperty]
+    private string _name = string.Empty;
+
+    [ObservableProperty]
+    private string _urlPattern = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BrowserDisplayName))]
+    private string _browserPath = string.Empty;
+
+    [ObservableProperty]
+    private string _browserArguments = string.Empty;
+
+    [ObservableProperty]
+    private bool _isEnabled = true;
+
+    [ObservableProperty]
+    private int _sequence;
 
     public string BrowserDisplayName
     {
