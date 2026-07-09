@@ -12,14 +12,19 @@ src/
 ├── AutoBrowser/                     — Main WPF app
 │   ├── Models/                      — RoutingRule, BrowserDefinition, AppSettings
 │   ├── Services/                    — RuleService, SettingsService, ProtocolService,
-│   │                                  DefaultBrowserService, UrlInterceptorService, UpdateService + ReleaseInfo
+│   │                                  DefaultBrowserService, SingleInstanceService,
+│   │                                  UrlInterceptorService, UpdateService + ReleaseInfo
 │   ├── Views/                       — RuleEditorView, RuleTesterView
-│   ├── ViewModels/                  — MainViewModel, RelayCommand
+│   ├── ViewModels/                  — MainViewModel
+│   ├── Helpers/                     — WindowForegroundHelper (Win32 P/Invoke)
 │   ├── MainWindow.xaml/.cs          — UI + tray icon
 │   ├── App.xaml/.cs                 — Single-instance, theme, CLI URL dispatch
 │   └── app.ico
-├── AutoUpdater/                     — AOT console EXE for update file swap + relaunch
+├── AutoUpdater/                     — Single-file console EXE for update file swap + relaunch
 │   └── Program.cs
+├── AutoBrowser.Tests/               — xUnit test project (38 tests)
+│   ├── Models/                      — BrowserDefinitionTests, RoutingRuleTests
+│   └── Services/                    — UrlInterceptorServiceTests
 ├── AutoBrowser.slnx                 — Solution file (SLNX format)
 └── .github/workflows/release.yml    — Build + publish + GitHub release
 ```
@@ -34,6 +39,7 @@ src/
 - Portable: all data in `Data/` folder next to exe
 - Auto-update: checks GitHub releases on startup + manual button
 - CI: pre-release on branch push, stable on tag push; revision from UTC time-of-day
+- Tests: 38 xUnit tests covering models and services
 
 ## Developer Tools
 - **Serena MCP** — semantic code analysis (symbol search, references, refactoring) via `opencode.json`

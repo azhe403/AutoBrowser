@@ -4,11 +4,11 @@
 WPF desktop app for Windows. Registers as `autobrowser://` protocol handler and optional default browser, then routes URLs to user-configured browsers by regex rules. Lives in system tray, minimizes on close (minimize-to-tray and close-to-tray independently configurable).
 
 ## AutoUpdater (src/AutoUpdater/)
-- Standalone AOT console EXE for file swap + relaunch (no runtime dependency)
+- Standalone single-file console EXE for file swap + relaunch (no runtime dependency)
 - Build dependency via `ReferenceOutputAssembly="false"` in main csproj
 - Post-build MSBuild target copies all `AutoUpdater*` files into main app output
 
-$1
+## Project Structure
 ```
 AutoBrowser/
 ├── app.ico                      # Multi-res icon
@@ -25,14 +25,14 @@ AutoBrowser/
 │   ├── ISettingsService.cs / SettingsService.cs   # Settings JSON persistence
 │   ├── IProtocolService.cs / ProtocolService.cs   # autobrowser:// registry ops
 │   ├── IDefaultBrowserService.cs / DefaultBrowserService.cs  # Default browser reg
-│   └── UrlInterceptorService.cs                   # URL matching + browser launch
-│   └── UpdateService.cs + ReleaseInfo record    # GitHub release check, download, update install
+│   ├── SingleInstanceService.cs                   # Named pipe IPC for single-instance
+│   ├── UrlInterceptorService.cs                   # URL matching + browser launch
+│   └── UpdateService.cs + ReleaseInfo record      # GitHub release check, download, update install
 ├── Views/
 │   ├── RuleEditorView.xaml / .cs   # Add/Edit rule with browser dropdown
 │   └── RuleTesterView.xaml / .cs   # Test URL input dialog
 └── ViewModels/
-    ├── MainViewModel.cs         # CRUD, reorder, toggle, reg checkboxes, test URL, IsDarkTheme
-    └── RelayCommand.cs          # ICommand impl
+    └── MainViewModel.cs         # CRUD, reorder, toggle, reg checkboxes, test URL, IsDarkTheme
 ```
 
 ## Key Design Decisions

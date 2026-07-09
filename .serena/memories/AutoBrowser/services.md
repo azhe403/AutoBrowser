@@ -25,7 +25,14 @@ Order (duplicates skipped by EXE path):
 - `asInvoker` manifest (no admin)
 - Post-build MSBuild target copies `AutoUpdater*` from updater output to main app output
 
-$1
+## Single Instance (SingleInstanceService)
+- Named pipe IPC (`System.IO.Pipes`) for single-instance signaling
+- `SingleInstanceService` manages pipe server in background `Task.Run` loop
+- Protocol: `"SHOW"` or `"SHOW|<url>"` — brings existing window to front
+- `WindowForegroundHelper` uses Win32 P/Invoke (`SetForegroundWindow`, `ShowWindow`)
+- `MainWindow.ActivateFromTray(url)` restores window and processes forwarded URL
+
+## Persistence
 ### Rules (`Data/rules.json`)
 - JSON array of `RoutingRule`, `WriteIndented = true`
 - Save triggers: Add, Edit, Delete, Move Up/Down, Toggle Enable/Disable, Window close
