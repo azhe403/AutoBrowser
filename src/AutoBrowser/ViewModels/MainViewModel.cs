@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Windows;
 using AutoBrowser.Models;
 using AutoBrowser.Services;
@@ -34,6 +36,10 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedRule))]
+    [NotifyCanExecuteChangedFor(nameof(EditRuleCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteRuleCommand))]
+    [NotifyCanExecuteChangedFor(nameof(MoveUpCommand))]
+    [NotifyCanExecuteChangedFor(nameof(MoveDownCommand))]
     private RoutingRule? _selectedRule;
 
     [ObservableProperty]
@@ -96,13 +102,24 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    public MainViewModel()
+    public MainViewModel(
+        IRuleService ruleService,
+        IProtocolService protocolService,
+        IDefaultBrowserService defaultBrowserService,
+        ISettingsService settingsService)
     {
-        _ruleService = new RuleService();
-        _protocolService = new ProtocolService();
-        _defaultBrowserService = new DefaultBrowserService();
-        _settingsService = new SettingsService();
+        _ruleService = ruleService;
+        _protocolService = protocolService;
+        _defaultBrowserService = defaultBrowserService;
+        _settingsService = settingsService;
+
         LoadRules();
+
+        Rules.CollectionChanged += Rules_CollectionChanged;
+        foreach (var rule in Rules)
+        {
+            rule.PropertyChanged += Rule_PropertyChanged;
+        }
 
         var app = (App)System.Windows.Application.Current;
         _isDarkTheme = app.CurrentThemeMode == AppThemeMode.Dark;
@@ -114,6 +131,26 @@ public partial class MainViewModel : ObservableObject
 
         _minimizeToTray = settings.MinimizeToTray;
         _closeToTray = settings.CloseToTray;
+    }
+
+    private void Rules_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.OldItems is not null)
+        {
+            foreach (RoutingRule rule in e.OldItems)
+                rule.PropertyChanged -= Rule_PropertyChanged;
+        }
+
+        if (e.NewItems is not null)
+        {
+            foreach (RoutingRule rule in e.NewItems)
+                rule.PropertyChanged += Rule_PropertyChanged;
+        }
+    }
+
+    private void Rule_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        SaveRules();
     }
 
     partial void OnIsDarkThemeChanged(bool value)
@@ -148,17 +185,17 @@ public partial class MainViewModel : ObservableObject
         Status = value ? "Close to tray enabled" : "Close to tray disabled";
     }
 
-    public void StartSilentUpdateCheck()
+    public async Task StartSilentUpdateCheckAsync(bool force = false)
     {
         var settings = _settingsService.LoadSettings();
         var elapsed = DateTime.Now - settings.LastUpdateCheckTime;
-        if (elapsed < TimeSpan.FromHours(1))
+        if (!force && elapsed < TimeSpan.FromHours(1))
         {
             Log.Debug("Silent update check skipped, last check was {Elapsed} ago", elapsed);
             return;
         }
 
-        _ = CheckForUpdateSilentAsync();
+        await CheckForUpdateSilentAsync();
     }
 
     private async Task CheckForUpdateSilentAsync()

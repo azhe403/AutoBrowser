@@ -8,12 +8,12 @@
 - **Toggle setter** → `App.ApplyTheme(Dark|Light)` → `ApplicationThemeManager.Apply()` + loads existing settings → sets `ThemeMode` → persists to `Data/settings.json`
 - **`App.CurrentThemeMode`** property prevents desync from stale settings values
 
-## System Tray
+## System Tray (Managed by App.xaml.cs)
 - `NotifyIcon` with app icon + context menu (Show Window, Exit)
-- Minimize → hides to tray (`Window_StateChanged`) — when `MinimizeToTray` enabled
-- Close → minimizes to tray (cancel `Closing` event) — when `CloseToTray` enabled
+- Minimize → hides to tray (`MainWindow_StateChanged`) — when `MinimizeToTray` enabled
+- Close → minimizes to tray (cancel `MainWindow_Closing` event) — when `CloseToTray` enabled
 - Only Exit menu item truly terminates
-- `SaveRules()` called on close
+- `SaveRules()` and `SaveWindowState()` called on close
 - Both options persist to `Data/settings.json`
 
 ## Update Check
@@ -24,14 +24,14 @@
 - **Silent flow**: fires `ShowUpdateDialogAsync` only when newer version found
 - **Manual flow**: shows status for checking/up-to-date/failed, then delegates to `ShowUpdateDialogAsync`
 
-## Single Instance
+## Single Instance (Managed by App.xaml.cs)
 - Named pipe IPC (`System.IO.Pipes`) for single-instance signaling
 - `SingleInstanceService` manages pipe server in background `Task.Run` loop
 - Protocol: `"SHOW"` or `"SHOW|<url>"` — brings existing window to front
 - `WindowForegroundHelper` uses Win32 P/Invoke (`SetForegroundWindow`, `ShowWindow`)
-- `MainWindow.ActivateFromTray(url)` restores window and processes forwarded URL
+- `App.ActivateFromTray(url)` restores window and processes forwarded URL
 
-## Re-Register Prompt
+## Re-Register Prompt (Managed by App.xaml.cs)
 - On startup, compares registered protocol/default browser paths with `Environment.ProcessPath`
 - If path differs (app was moved), shows WPF UI `MessageBox` with old/new paths
 - Uses `ShowDialogAsync()` (async) with owner set to MainWindow
