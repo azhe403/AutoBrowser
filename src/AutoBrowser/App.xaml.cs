@@ -113,6 +113,7 @@ public partial class App : System.Windows.Application
         _trayIcon?.Dispose();
         Log.CloseAndFlush();
         base.OnExit(e);
+        Environment.Exit(e.ApplicationExitCode); // forcefully kill any rogue background threads
     }
 
 
@@ -125,13 +126,14 @@ public partial class App : System.Windows.Application
 
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Verbose()
+            .Enrich.WithThreadId()
             .WriteTo.Console(
-                outputTemplate: "[{Timestamp:HH:mm:ss.fff}] [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+                outputTemplate: "[{Timestamp:HH:mm:ss.fff}] [{ThreadId}] [{Level:u3}] {Message:lj}{NewLine}{Exception}")
             .WriteTo.File(
                 Path.Combine(logDir, "AutoBrowser-.log"),
                 rollingInterval: RollingInterval.Day,
                 shared: true,
-                outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff}] [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff}] [{ThreadId}] [{Level:u3}] {Message:lj}{NewLine}{Exception}",
                 retainedFileCountLimit: 14)
             .CreateLogger();
     }
@@ -151,7 +153,7 @@ public partial class App : System.Windows.Application
             args.Handled = true;
         };
 
-        System.Threading.Tasks.TaskScheduler.UnobservedTaskException += (_, args) =>
+        TaskScheduler.UnobservedTaskException += (_, args) =>
         {
             Log.Error(args.Exception, "UnobservedTaskException");
             args.SetObserved();
