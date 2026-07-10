@@ -117,4 +117,34 @@ public class MainViewModelTests
         Assert.False(vm.MoveUpCommand.CanExecute(null));
         Assert.False(vm.MoveDownCommand.CanExecute(null));
     }
+
+    [Fact]
+    public void AppVersion_And_WindowTitle_ReturnsCorrectValues()
+    {
+        // Act
+        var vm = new MainViewModel(
+            _mockRuleService.Object,
+            _mockProtocolService.Object,
+            _mockDefaultBrowserService.Object,
+            _mockSettingsService.Object);
+
+        // Assert
+        Assert.NotNull(vm.AppVersion);
+        Assert.Contains(vm.AppVersion, vm.WindowTitle);
+        Assert.StartsWith("AutoBrowser v", vm.WindowTitle);
+    }
+
+    [Fact]
+    public void OpenUrlCommand_IsInitialized()
+    {
+        // Act
+        var vm = new MainViewModel(
+            _mockRuleService.Object,
+            _mockProtocolService.Object,
+            _mockDefaultBrowserService.Object,
+            _mockSettingsService.Object);
+
+        // Assert
+        Assert.NotNull(vm.OpenUrlCommand);
+    }
 }
