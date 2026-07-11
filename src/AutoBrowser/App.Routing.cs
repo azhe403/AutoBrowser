@@ -15,20 +15,16 @@ public partial class App
         Log.Debug("ProcessUrl called: {Url}", url);
 
         var interceptor = new UrlInterceptorService(_ruleService, _defaultBrowserService);
-        var vm = Services.GetRequiredService<MainViewModel>();
-        var fallbackPath = vm.FallbackBrowser?.ExecutablePath;
+        var fallbackPath = _settingsService.LoadSettings().FallbackBrowserPath;
         var browser = interceptor.TryRoute(url, fallbackPath);
         if (browser is not null)
         {
             Log.Information("URL routed via {Browser}: {Url}", browser, url);
             ShowNotification("AutoBrowser", $"Routed via {browser}:\n{url}");
-            if (_mainWindow != null && _mainWindow.IsLoaded)
-                vm.Status = $"Routed via {browser}: {url}";
             return;
         }
 
         Log.Warning("No rule matched for URL: {Url}", url);
-        vm.Status = $"No match: {url}";
         ShowNotification("AutoBrowser", $"No rule matched and no fallback browser configured.\n{url}");
     }
 

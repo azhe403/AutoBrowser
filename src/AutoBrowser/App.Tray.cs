@@ -42,7 +42,9 @@ public partial class App
         SaveWindowState();
         _isExiting = true;
         _trayIcon?.Dispose();
-        Shutdown();
+        
+        // Force the app to shutdown immediately without relying on MainWindow.Closing routing
+        Current.Shutdown();
     }
 
     private static void ShowNotification(string title, string message)

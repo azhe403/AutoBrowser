@@ -48,6 +48,9 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IDefaultBrowserService, DefaultBrowserService>();
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddTransient<MainViewModel>();
+        services.AddTransient<HomeViewModel>();
+        services.AddTransient<SettingsViewModel>();
+        services.AddTransient<AboutViewModel>();
         services.AddTransient<MainWindow>();
         services.AddSingleton<Wpf.Ui.Abstractions.INavigationViewPageProvider, NavigationViewPageProvider>();
         services.AddTransient<HomePage>();

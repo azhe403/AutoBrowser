@@ -19,7 +19,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <ui:TitleBar Grid.Row="0" Title="{Binding WindowTitle}" Icon="/app.ico" />
@@ -32,8 +31,12 @@
             <ui:NavigationView.FooterMenuItems>
                 <ui:NavigationViewItem Content="Settings" Icon="{ui:SymbolIcon Settings24}" TargetPageType="{x:Type views:SettingsPage}"/>
             </ui:NavigationView.FooterMenuItems>
-        </ui:NavigationView>
 
-        <views:StatusControl Grid.Row="2" Margin="12,6,12,8"/>
+            <ui:NavigationView.ContentOverlay>
+                <Grid>
+                    <views:StatusControl x:Name="StatusView" VerticalAlignment="Bottom" Margin="24,0,24,12" />
+                </Grid>
+            </ui:NavigationView.ContentOverlay>
+        </ui:NavigationView>
     </Grid>
 </ui:FluentWindow>

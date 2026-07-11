@@ -176,7 +176,6 @@ public partial class App
 
             if (result == Wpf.Ui.Controls.MessageBoxResult.Primary)
             {
-                var vm = Services.GetRequiredService<MainViewModel>();
                 if (registrationType.Contains("protocol"))
                 {
                     _protocolService.UnregisterProtocolHandler();
@@ -191,7 +190,6 @@ public partial class App
                 }
 
                 ShowNotification("AutoBrowser", "Registration updated successfully.");
-                vm.Status = "Registration updated to new path.";
             }
             else
             {

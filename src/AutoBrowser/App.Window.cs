@@ -52,23 +52,22 @@ public partial class App
     private void MainWindow_StateChanged(object? sender, EventArgs e)
     {
         if (_mainWindow == null) return;
-        var vm = Services.GetRequiredService<MainViewModel>();
+        var settings = _settingsService.LoadSettings();
         Log.Debug("Window_StateChanged: WindowState={WindowState}, MinimizeToTray={MinimizeToTray}",
-            _mainWindow.WindowState, vm.MinimizeToTray);
-        if (_mainWindow.WindowState == WindowState.Minimized && vm.MinimizeToTray)
+            _mainWindow.WindowState, settings.MinimizeToTray);
+        if (_mainWindow.WindowState == WindowState.Minimized && settings.MinimizeToTray)
             _mainWindow.Hide();
     }
 
     private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
         if (_mainWindow == null) return;
-        var vm = Services.GetRequiredService<MainViewModel>();
+        var settings = _settingsService.LoadSettings();
         SaveWindowState();
-        vm.SaveRules();
         Log.Debug("MainWindow_Closing: _isExiting={IsExiting}, CloseToTray={CloseToTray}",
-            _isExiting, vm.CloseToTray);
+            _isExiting, settings.CloseToTray);
 
-        if (!_isExiting && vm.CloseToTray)
+        if (!_isExiting && settings.CloseToTray)
         {
             e.Cancel = true;
             _mainWindow.Hide();
@@ -77,6 +76,8 @@ public partial class App
         {
             _isExiting = true;
             _trayIcon?.Dispose();
+            // Force shutdown to prevent background threads/server keeping app alive
+            System.Windows.Application.Current.Shutdown();
         }
     }
 

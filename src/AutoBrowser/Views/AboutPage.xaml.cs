@@ -5,7 +5,7 @@ namespace AutoBrowser.Views;
 
 public partial class AboutPage : Page
 {
-    public AboutPage(MainViewModel viewModel)
+    public AboutPage(AboutViewModel viewModel)
     {
         InitializeComponent();
         DataContext = viewModel;

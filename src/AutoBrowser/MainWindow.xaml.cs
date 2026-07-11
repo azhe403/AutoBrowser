@@ -14,6 +14,13 @@ public partial class MainWindow : FluentWindow
         DataContext = viewModel;
 
         RootNavigation.SetPageProviderService(pageProvider);
+        RootNavigation.Navigated += (s, e) =>
+        {
+            if (e.Page is System.Windows.Controls.Page page)
+            {
+                StatusView.DataContext = page.DataContext;
+            }
+        };
         Loaded += (s, e) => RootNavigation.Navigate(typeof(HomePage));
     }
 }
