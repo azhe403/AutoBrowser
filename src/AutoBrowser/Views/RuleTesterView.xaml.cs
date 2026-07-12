@@ -1,3 +1,4 @@
+using System.Windows;
 using AutoBrowser.Services;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
@@ -20,7 +21,7 @@ public partial class RuleTesterView : FluentWindow
         var settings = _settingsService.LoadSettings();
         InputBox.Text = string.IsNullOrWhiteSpace(defaultValue) ? settings.LastTestUrl : defaultValue;
 
-        Owner = System.Windows.Application.Current.MainWindow;
+        Owner = Application.Current.MainWindow;
         InputBox.Focus();
         InputBox.SelectAll();
         InputBox.TextChanged += (_, _) => UpdateValidation();
@@ -36,7 +37,7 @@ public partial class RuleTesterView : FluentWindow
         ValidationText.Text = isValid ? "" : "Enter a valid URL (e.g. https://example.com)";
     }
 
-    private void Ok_Click(object sender, System.Windows.RoutedEventArgs e)
+    private void Ok_Click(object sender, RoutedEventArgs e)
     {
         Result = InputBox.Text?.Trim();
         if (!string.IsNullOrWhiteSpace(Result))
@@ -49,7 +50,7 @@ public partial class RuleTesterView : FluentWindow
         Close();
     }
 
-    private void Cancel_Click(object sender, System.Windows.RoutedEventArgs e)
+    private void Cancel_Click(object sender, RoutedEventArgs e)
     {
         DialogResult = false;
         Close();

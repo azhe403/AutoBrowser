@@ -1,15 +1,13 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Windows;
 using AutoBrowser.Models;
 using AutoBrowser.Services;
 using AutoBrowser.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace AutoBrowser.ViewModels;
 
@@ -228,11 +226,11 @@ public partial class HomeViewModel : ObservableObject
             Width = 500,
             MinWidth = 500
         };
-        dialog.Owner = System.Windows.Application.Current.MainWindow;
+        dialog.Owner = Application.Current.MainWindow;
         var result = await dialog.ShowDialogAsync();
-        if (System.Windows.Application.Current.MainWindow != null && System.Windows.Application.Current.MainWindow.IsLoaded)
+        if (Application.Current.MainWindow != null && Application.Current.MainWindow.IsLoaded)
         {
-            System.Windows.Application.Current.MainWindow.Focus();
+            Application.Current.MainWindow.Focus();
         }
 
         Log.Information("Update dialog result: {Result} for v{Version}", result, release.Version);
@@ -256,12 +254,12 @@ public partial class HomeViewModel : ObservableObject
     {
         try
         {
-            using var icon = new System.Windows.Forms.NotifyIcon
+            using var icon = new NotifyIcon
             {
-                Icon = System.Drawing.Icon.ExtractAssociatedIcon(Environment.ProcessPath ?? ""),
+                Icon = Icon.ExtractAssociatedIcon(Environment.ProcessPath ?? ""),
                 Visible = true
             };
-            icon.ShowBalloonTip(3000, title, message, System.Windows.Forms.ToolTipIcon.Warning);
+            icon.ShowBalloonTip(3000, title, message, ToolTipIcon.Warning);
         }
         catch (Exception ex)
         {

@@ -1,9 +1,7 @@
-using System;
 using System.IO;
 using System.Windows;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using AutoBrowser.ViewModels;
+using System.Windows.Controls;
+using System.Windows.Media;
 using Serilog;
 
 namespace AutoBrowser;
@@ -71,92 +69,92 @@ public partial class App
             var oldDefaultPath = _defaultBrowserService.GetRegisteredPath();
             var oldPath = !string.IsNullOrEmpty(oldProtocolPath) ? oldProtocolPath : (!string.IsNullOrEmpty(oldDefaultPath) ? oldDefaultPath : "(unknown)");
 
-            var contentPanel = new System.Windows.Controls.StackPanel();
+            var contentPanel = new StackPanel();
 
-            var descText = new System.Windows.Controls.TextBlock
+            var descText = new TextBlock
             {
                 Text = $"AutoBrowser has been moved to a new location, but the {registrationType} still points to the old path.",
-                TextWrapping = System.Windows.TextWrapping.Wrap,
-                Margin = new System.Windows.Thickness(0, 0, 0, 16),
+                TextWrapping = TextWrapping.Wrap,
+                Margin = new Thickness(0, 0, 0, 16),
                 FontSize = 14,
-                Foreground = (System.Windows.Media.Brush)System.Windows.Application.Current.FindResource("TextFillColorPrimaryBrush")
+                Foreground = (Brush)Application.Current.FindResource("TextFillColorPrimaryBrush")
             };
             contentPanel.Children.Add(descText);
 
-            var cardBorder = new System.Windows.Controls.Border
+            var cardBorder = new Border
             {
-                Background = (System.Windows.Media.Brush)System.Windows.Application.Current.FindResource("ControlFillColorDefaultBrush"),
-                BorderBrush = (System.Windows.Media.Brush)System.Windows.Application.Current.FindResource("ControlElevationBorderBrush"),
-                BorderThickness = new System.Windows.Thickness(1),
-                CornerRadius = new System.Windows.CornerRadius(6),
-                Padding = new System.Windows.Thickness(12),
-                Margin = new System.Windows.Thickness(0, 0, 0, 16)
+                Background = (Brush)Application.Current.FindResource("ControlFillColorDefaultBrush"),
+                BorderBrush = (Brush)Application.Current.FindResource("ControlElevationBorderBrush"),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(6),
+                Padding = new Thickness(12),
+                Margin = new Thickness(0, 0, 0, 16)
             };
 
-            var grid = new System.Windows.Controls.Grid();
-            grid.ColumnDefinitions.Add(new System.Windows.Controls.ColumnDefinition { Width = new System.Windows.GridLength(80) });
-            grid.ColumnDefinitions.Add(new System.Windows.Controls.ColumnDefinition { Width = new System.Windows.GridLength(1, System.Windows.GridUnitType.Star) });
-            grid.RowDefinitions.Add(new System.Windows.Controls.RowDefinition { Height = System.Windows.GridLength.Auto });
-            grid.RowDefinitions.Add(new System.Windows.Controls.RowDefinition { Height = new System.Windows.GridLength(8) });
-            grid.RowDefinitions.Add(new System.Windows.Controls.RowDefinition { Height = System.Windows.GridLength.Auto });
+            var grid = new Grid();
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(8) });
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-            var oldLabel = new System.Windows.Controls.TextBlock
+            var oldLabel = new TextBlock
             {
                 Text = "Old Path:",
-                FontWeight = System.Windows.FontWeights.SemiBold,
-                VerticalAlignment = System.Windows.VerticalAlignment.Top,
-                Foreground = (System.Windows.Media.Brush)System.Windows.Application.Current.FindResource("TextFillColorSecondaryBrush")
+                FontWeight = FontWeights.SemiBold,
+                VerticalAlignment = VerticalAlignment.Top,
+                Foreground = (Brush)Application.Current.FindResource("TextFillColorSecondaryBrush")
             };
-            System.Windows.Controls.Grid.SetColumn(oldLabel, 0);
-            System.Windows.Controls.Grid.SetRow(oldLabel, 0);
+            Grid.SetColumn(oldLabel, 0);
+            Grid.SetRow(oldLabel, 0);
             grid.Children.Add(oldLabel);
 
-            var oldPathText = new System.Windows.Controls.TextBlock
+            var oldPathText = new TextBlock
             {
                 Text = oldPath,
-                TextWrapping = System.Windows.TextWrapping.Wrap,
-                FontFamily = new System.Windows.Media.FontFamily("Consolas"),
+                TextWrapping = TextWrapping.Wrap,
+                FontFamily = new FontFamily("Consolas"),
                 FontSize = 11,
-                VerticalAlignment = System.Windows.VerticalAlignment.Top,
-                Foreground = (System.Windows.Media.Brush)System.Windows.Application.Current.FindResource("TextFillColorTertiaryBrush")
+                VerticalAlignment = VerticalAlignment.Top,
+                Foreground = (Brush)Application.Current.FindResource("TextFillColorTertiaryBrush")
             };
-            System.Windows.Controls.Grid.SetColumn(oldPathText, 1);
-            System.Windows.Controls.Grid.SetRow(oldPathText, 0);
+            Grid.SetColumn(oldPathText, 1);
+            Grid.SetRow(oldPathText, 0);
             grid.Children.Add(oldPathText);
 
-            var newLabel = new System.Windows.Controls.TextBlock
+            var newLabel = new TextBlock
             {
                 Text = "New Path:",
-                FontWeight = System.Windows.FontWeights.SemiBold,
-                VerticalAlignment = System.Windows.VerticalAlignment.Top,
-                Foreground = (System.Windows.Media.Brush)System.Windows.Application.Current.FindResource("TextFillColorSecondaryBrush")
+                FontWeight = FontWeights.SemiBold,
+                VerticalAlignment = VerticalAlignment.Top,
+                Foreground = (Brush)Application.Current.FindResource("TextFillColorSecondaryBrush")
             };
-            System.Windows.Controls.Grid.SetColumn(newLabel, 0);
-            System.Windows.Controls.Grid.SetRow(newLabel, 2);
+            Grid.SetColumn(newLabel, 0);
+            Grid.SetRow(newLabel, 2);
             grid.Children.Add(newLabel);
 
-            var newPathText = new System.Windows.Controls.TextBlock
+            var newPathText = new TextBlock
             {
                 Text = currentPath,
-                TextWrapping = System.Windows.TextWrapping.Wrap,
-                FontFamily = new System.Windows.Media.FontFamily("Consolas"),
+                TextWrapping = TextWrapping.Wrap,
+                FontFamily = new FontFamily("Consolas"),
                 FontSize = 11,
-                VerticalAlignment = System.Windows.VerticalAlignment.Top,
-                Foreground = (System.Windows.Media.Brush)System.Windows.Application.Current.FindResource("TextFillColorTertiaryBrush")
+                VerticalAlignment = VerticalAlignment.Top,
+                Foreground = (Brush)Application.Current.FindResource("TextFillColorTertiaryBrush")
             };
-            System.Windows.Controls.Grid.SetColumn(newPathText, 1);
-            System.Windows.Controls.Grid.SetRow(newPathText, 2);
+            Grid.SetColumn(newPathText, 1);
+            Grid.SetRow(newPathText, 2);
             grid.Children.Add(newPathText);
 
             cardBorder.Child = grid;
             contentPanel.Children.Add(cardBorder);
 
-            var questionText = new System.Windows.Controls.TextBlock
+            var questionText = new TextBlock
             {
                 Text = "Would you like to re-register now?",
-                FontWeight = System.Windows.FontWeights.SemiBold,
+                FontWeight = FontWeights.SemiBold,
                 FontSize = 14,
-                Foreground = (System.Windows.Media.Brush)System.Windows.Application.Current.FindResource("TextFillColorPrimaryBrush")
+                Foreground = (Brush)Application.Current.FindResource("TextFillColorPrimaryBrush")
             };
             contentPanel.Children.Add(questionText);
 

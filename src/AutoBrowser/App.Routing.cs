@@ -1,8 +1,4 @@
-using System;
-using System.Windows;
-using Microsoft.Extensions.DependencyInjection;
 using AutoBrowser.Services;
-using AutoBrowser.ViewModels;
 using AutoBrowser.Helpers;
 using Serilog;
 

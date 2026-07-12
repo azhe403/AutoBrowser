@@ -1,4 +1,3 @@
-using System;
 using System.Windows;
 using Serilog;
 
@@ -8,14 +7,14 @@ public partial class App
 {
     private void SetupTrayIcon()
     {
-        _trayIcon = new System.Windows.Forms.NotifyIcon
+        _trayIcon = new NotifyIcon
         {
-            Icon = System.Drawing.Icon.ExtractAssociatedIcon(Environment.ProcessPath ?? ""),
+            Icon = Icon.ExtractAssociatedIcon(Environment.ProcessPath ?? ""),
             Text = "AutoBrowser - URL Router",
             Visible = true
         };
 
-        var menu = new System.Windows.Forms.ContextMenuStrip();
+        var menu = new ContextMenuStrip();
         menu.Items.Add("Show Window", null, (_, _) => ShowWindow());
         menu.Items.Add("-");
         menu.Items.Add("Exit", null, (_, _) => ExitApp());
@@ -51,12 +50,12 @@ public partial class App
     {
         try
         {
-            using var icon = new System.Windows.Forms.NotifyIcon
+            using var icon = new NotifyIcon
             {
-                Icon = System.Drawing.Icon.ExtractAssociatedIcon(Environment.ProcessPath ?? ""),
+                Icon = Icon.ExtractAssociatedIcon(Environment.ProcessPath ?? ""),
                 Visible = true
             };
-            icon.ShowBalloonTip(3000, title, message, System.Windows.Forms.ToolTipIcon.Warning);
+            icon.ShowBalloonTip(3000, title, message, ToolTipIcon.Warning);
         }
         catch (Exception ex)
         {

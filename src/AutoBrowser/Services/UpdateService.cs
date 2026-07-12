@@ -3,7 +3,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Net;
 using System.Text.Json.Serialization;
+using System.Windows;
 using Serilog;
 
 namespace AutoBrowser.Services;
@@ -25,7 +27,7 @@ public class UpdateService
             Log.Information("Checking for updates from {Url}", ReleasesUrl);
             var resp = await Http.GetAsync(ReleasesUrl, ct);
 
-            if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+            if (resp.StatusCode == HttpStatusCode.NotFound)
             {
                 Log.Warning("Update check: 404 Not Found");
                 return null;
@@ -128,7 +130,7 @@ public class UpdateService
         };
 
         Process.Start(startInfo);
-        System.Windows.Application.Current.Shutdown();
+        Application.Current.Shutdown();
     }
 
     private static AssetInfo? SelectAsset(List<AssetInfo> assets)

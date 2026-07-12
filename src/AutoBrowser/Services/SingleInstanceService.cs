@@ -1,6 +1,7 @@
 using System.IO;
 using System.IO.Pipes;
 using System.Text;
+using System.Windows.Threading;
 using Serilog;
 
 namespace AutoBrowser.Services;
@@ -21,7 +22,7 @@ public sealed class SingleInstanceService : IDisposable
     /// </summary>
     /// <param name="onActivate">Called on the UI thread with an optional URL when a second instance signals.</param>
     /// <param name="dispatcher">The WPF dispatcher to marshal the callback onto.</param>
-    public void StartServer(Action<string?> onActivate, System.Windows.Threading.Dispatcher dispatcher)
+    public void StartServer(Action<string?> onActivate, Dispatcher dispatcher)
     {
         _cts = new CancellationTokenSource();
         _listenerTask = Task.Run(async () =>

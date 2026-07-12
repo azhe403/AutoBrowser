@@ -1,6 +1,6 @@
 namespace AutoBrowser.Views;
 
-public partial class StatusControl : System.Windows.Controls.UserControl
+public partial class StatusControl : UserControl
 {
     public StatusControl()
     {

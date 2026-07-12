@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using AutoBrowser.Models;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
@@ -14,7 +15,7 @@ public partial class RuleEditorView : FluentWindow
         SystemThemeWatcher.Watch(this);
         InitializeComponent();
         Rule = new RoutingRule();
-        Owner = System.Windows.Application.Current.MainWindow;
+        Owner = Application.Current.MainWindow;
 
         var browsers = BrowserDefinition.GetKnownBrowsers();
         BrowserCombo.ItemsSource = browsers;
@@ -37,7 +38,7 @@ public partial class RuleEditorView : FluentWindow
             BrowserCombo.SelectedItem = match;
     }
 
-    private void BrowserCombo_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    private void BrowserCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (BrowserCombo.SelectedItem is BrowserDefinition browser)
             BrowserPathBox.Text = browser.ExecutablePath;
@@ -62,7 +63,7 @@ public partial class RuleEditorView : FluentWindow
             string.IsNullOrWhiteSpace(BrowserPathBox.Text))
         {
             System.Windows.MessageBox.Show("Name, URL pattern, and browser are required.", "Validation",
-                System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -70,7 +71,7 @@ public partial class RuleEditorView : FluentWindow
         if (!isValid)
         {
             System.Windows.MessageBox.Show(error, "Invalid URL Pattern",
-                System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 

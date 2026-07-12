@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Windows;
 using AutoBrowser.Models;
 using AutoBrowser.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -112,13 +110,13 @@ public partial class SettingsViewModel : ObservableObject
         if (oldValue == newValue) return;
         ApplicationThemeManager.Apply(newValue);
 
-        var app = System.Windows.Application.Current as App;
+        var app = Application.Current as App;
         app?.SaveTheme(newValue == ApplicationTheme.Dark ? AppThemeMode.Dark : AppThemeMode.Light);
 
         Status = newValue == ApplicationTheme.Dark ? "Switched to Dark theme" : "Switched to Light theme";
     }
 
-    private void OnThemeChanged(ApplicationTheme currentApplicationTheme, System.Windows.Media.Color systemAccent)
+    private void OnThemeChanged(ApplicationTheme currentApplicationTheme, Color systemAccent)
     {
         if (CurrentApplicationTheme != currentApplicationTheme)
         {

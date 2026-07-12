@@ -1,6 +1,8 @@
 # Conventions
 
 ## Code Style
+- Use `using` directives instead of fully qualified type names (e.g., `using System.Windows.Forms;` then `new NotifyIcon()` not `new System.Windows.Forms.NotifyIcon()`)
+- When namespace ambiguity exists, add aliases in `GlobalUsings.cs` only — never use local `using` aliases in individual files
 - C# with nullable enabled, implicit usings enabled
 - File-scoped namespaces (e.g., `namespace AutoBrowser;`)
 - CommunityToolkit.Mvvm source generators: `[ObservableProperty]`, `[RelayCommand]`, `partial void On<Property>Changed()`

@@ -1,6 +1,5 @@
-using System;
-using System.Threading.Tasks;
-using AutoBrowser.Models;
+using System.Reflection;
+using System.Windows;
 using AutoBrowser.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Serilog;
@@ -12,7 +11,7 @@ public partial class MainViewModel : ObservableObject
     private readonly ISettingsService _settingsService;
     private readonly UpdateService _updateService = new();
 
-    public string AppVersion => System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0.0";
+    public string AppVersion => Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0.0";
     public string WindowTitle => $"AutoBrowser v{AppVersion} - URL Router";
 
     public MainViewModel(ISettingsService settingsService)
@@ -69,11 +68,11 @@ public partial class MainViewModel : ObservableObject
             Width = 500,
             MinWidth = 500
         };
-        dialog.Owner = System.Windows.Application.Current.MainWindow;
+        dialog.Owner = Application.Current.MainWindow;
         var result = await dialog.ShowDialogAsync();
-        if (System.Windows.Application.Current.MainWindow != null && System.Windows.Application.Current.MainWindow.IsLoaded)
+        if (Application.Current.MainWindow != null && Application.Current.MainWindow.IsLoaded)
         {
-            System.Windows.Application.Current.MainWindow.Focus();
+            Application.Current.MainWindow.Focus();
         }
 
         Log.Information("Update dialog result: {Result} for v{Version}", result, release.Version);

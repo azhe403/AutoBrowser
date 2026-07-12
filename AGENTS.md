@@ -12,6 +12,7 @@ AutoBrowser is a WPF desktop app for Windows that routes URLs to user-configured
 - **Data Storage**: JSON files in `Data/` folder next to EXE (portable)
 - **Registry**: HKCU only, no admin elevation needed
 - **Logging**: Serilog with structured logging using message templates
+- **Code Style**: Use `using` directives, not fully qualified names; aliases only in `GlobalUsings.cs`
 
 ### Logging Level Convention
 

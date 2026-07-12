@@ -1,17 +1,17 @@
 using System.IO;
+using System.Threading;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using AutoBrowser.Models;
 using AutoBrowser.Services;
 using AutoBrowser.ViewModels;
-using AutoBrowser.Helpers;
 using AutoBrowser.Views;
 using Serilog;
 using Wpf.Ui.Appearance;
 
 namespace AutoBrowser;
 
-public partial class App : System.Windows.Application
+public partial class App : Application
 {
     private const string MutexName = "AutoBrowser-SingleInstance";
 
@@ -24,13 +24,13 @@ public partial class App : System.Windows.Application
 
     private SingleInstanceService? _singleInstanceService;
     private MainWindow? _mainWindow;
-    private System.Threading.Mutex? _mutex;
+    private Mutex? _mutex;
     public AppThemeMode CurrentThemeMode { get; private set; }
 
-    private System.Windows.Forms.NotifyIcon? _trayIcon;
+    private NotifyIcon? _trayIcon;
     private bool _isExiting;
 
-    protected override void OnStartup(System.Windows.StartupEventArgs e)
+    protected override void OnStartup(StartupEventArgs e)
     {
         ConfigureLogging();
         RegisterExceptionHandlers();
@@ -79,7 +79,7 @@ public partial class App : System.Windows.Application
         }
 
         // Single-instance guard: if already running, signal it and exit
-        _mutex = new System.Threading.Mutex(true, MutexName, out var isNewInstance);
+        _mutex = new Mutex(true, MutexName, out var isNewInstance);
         if (!isNewInstance)
         {
             Log.Information("Another instance detected, signaling via pipe");
@@ -111,7 +111,7 @@ public partial class App : System.Windows.Application
         _settingsService.SaveSettings(settings);
     }
 
-    protected override void OnExit(System.Windows.ExitEventArgs e)
+    protected override void OnExit(ExitEventArgs e)
     {
         Log.Information("OnExit (exit code: {ExitCode})", e.ApplicationExitCode);
         _singleInstanceService?.Dispose();

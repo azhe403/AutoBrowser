@@ -1,4 +1,3 @@
-using System.Windows;
 using System.Windows.Controls;
 using Wpf.Ui.Controls;
 using Wpf.Ui.Abstractions;

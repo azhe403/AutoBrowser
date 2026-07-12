@@ -1,7 +1,7 @@
 # Commit Strategy — CRITICAL
 
 ## Golden Rule
-**NEVER commit or push without explicit user permission.** Wait to be asked.
+**NEVER commit or push without explicit user permission.** Wait to be asked. This is the #1 rule — violating it is unacceptable. Even if the user says "fix" or "help", always ask "commit?" before running git commit.
 
 ## Split Per Logical Context — ALWAYS
 **Always split changes per logical context.** Group related edits together and separate unrelated changes into distinct commits or edits. Each commit/edit should represent one cohesive, meaningful change (e.g., a single feature, a bug fix, a refactor). Avoid mixing unrelated changes in the same commit or edit.

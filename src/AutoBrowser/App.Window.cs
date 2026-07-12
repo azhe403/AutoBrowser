@@ -1,4 +1,4 @@
-using System;
+using System.ComponentModel;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using AutoBrowser.ViewModels;
@@ -77,7 +77,7 @@ public partial class App
             _mainWindow.Hide();
     }
 
-    private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+    private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
         if (_mainWindow == null) return;
         var settings = _settingsService.LoadSettings();
@@ -95,7 +95,7 @@ public partial class App
             _isExiting = true;
             _trayIcon?.Dispose();
             // Force shutdown to prevent background threads/server keeping app alive
-            System.Windows.Application.Current.Shutdown();
+            Application.Current.Shutdown();
         }
     }
 

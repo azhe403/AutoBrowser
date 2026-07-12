@@ -2,9 +2,6 @@ using AutoBrowser.Models;
 using AutoBrowser.Services;
 using AutoBrowser.ViewModels;
 using Moq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace AutoBrowser.Tests.ViewModels;
 
