@@ -1,5 +1,6 @@
 using System.IO;
 using Microsoft.Win32;
+using Serilog;
 
 namespace AutoBrowser.Models;
 
@@ -75,26 +76,30 @@ public class BrowserDefinition
         try
         {
             using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, view);
-            using var appPaths = baseKey.OpenSubKey(
-                @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths");
+            using var appPaths = baseKey.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths");
             if (appPaths == null) return;
 
             ScanAppPathsSubKey(appPaths, browsers);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to scan App Paths registry (view: {View})", view);
+        }
     }
 
     private static void ScanAppPathsRegistryCurrentUser(List<BrowserDefinition> browsers)
     {
         try
         {
-            using var appPaths = Registry.CurrentUser.OpenSubKey(
-                @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths");
+            using var appPaths = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths");
             if (appPaths == null) return;
 
             ScanAppPathsSubKey(appPaths, browsers);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to scan App Paths registry for current user");
+        }
     }
 
     private static void ScanAppPathsSubKey(RegistryKey appPaths, List<BrowserDefinition> browsers)
@@ -124,7 +129,10 @@ public class BrowserDefinition
                     ArgumentsTemplate = "{url}"
                 });
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to read App Paths subkey: {SubKeyName}", subKeyName);
+            }
         }
     }
 
@@ -156,7 +164,10 @@ public class BrowserDefinition
                 });
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to scan URL associations registry");
+        }
     }
 
     private static void ScanRegisteredApplications(List<BrowserDefinition> browsers, RegistryHive hive)
@@ -198,19 +209,28 @@ public class BrowserDefinition
                         ArgumentsTemplate = "{url}"
                     });
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Failed to read registered application: {AppName}", appName);
+                }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to scan registered applications (hive: {Hive})", hive);
+        }
     }
 
     private static void ScanLocalAppDataForBrowsers(List<BrowserDefinition> browsers, string localAppData)
     {
         if (!Directory.Exists(localAppData)) return;
 
-        var browserExes = new[] { "chrome.exe", "msedge.exe", "firefox.exe", "brave.exe",
+        var browserExes = new[]
+        {
+            "chrome.exe", "msedge.exe", "firefox.exe", "brave.exe",
             "vivaldi.exe", "opera.exe", "launcher.exe", "tor.exe", "waterfox.exe",
-            "librewolf.exe", "palemoon.exe", "iridium.exe", "epic.exe" };
+            "librewolf.exe", "palemoon.exe", "iridium.exe", "epic.exe"
+        };
 
         try
         {
@@ -235,7 +255,10 @@ public class BrowserDefinition
                 }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to scan local AppData for browsers");
+        }
     }
 
     private static string? GetKnownBrowserName(string exeName)

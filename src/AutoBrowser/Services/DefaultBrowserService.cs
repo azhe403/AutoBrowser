@@ -1,5 +1,6 @@
 using System.IO;
 using Microsoft.Win32;
+using Serilog;
 
 namespace AutoBrowser.Services;
 
@@ -46,8 +47,9 @@ public class DefaultBrowserService : IDefaultBrowserService
 
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Warning(ex, "Failed to register as default browser");
             return false;
         }
     }
@@ -60,14 +62,18 @@ public class DefaultBrowserService : IDefaultBrowserService
                 @"Software\RegisteredApplications");
             registeredApp.DeleteValue(AppName, false);
 
-            try { Registry.CurrentUser.DeleteSubKeyTree($@"Software\{AppName}", false); } catch { }
-            try { Registry.CurrentUser.DeleteSubKeyTree($@"Software\Classes\{ProgId}", false); } catch { }
+            try { Registry.CurrentUser.DeleteSubKeyTree($@"Software\{AppName}", false); }
+            catch (Exception ex) { Log.Warning(ex, "Failed to delete AppName subkey"); }
+
+            try { Registry.CurrentUser.DeleteSubKeyTree($@"Software\Classes\{ProgId}", false); }
+            catch (Exception ex) { Log.Warning(ex, "Failed to delete ProgId subkey"); }
 
             RemoveSavedDefaultBrowser();
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Warning(ex, "Failed to unregister as default browser");
             return false;
         }
     }
@@ -76,12 +82,21 @@ public class DefaultBrowserService : IDefaultBrowserService
     {
         try
         {
+            var currentPath = Environment.ProcessPath;
+            if (string.IsNullOrEmpty(currentPath))
+                return false;
+
             using var registeredApp = Registry.CurrentUser.OpenSubKey(
                 @"Software\RegisteredApplications");
-            return registeredApp?.GetValue(AppName) != null;
+            if (registeredApp?.GetValue(AppName) == null)
+                return false;
+
+            var registeredPath = GetRegisteredPath();
+            return string.Equals(registeredPath, currentPath, StringComparison.OrdinalIgnoreCase);
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Warning(ex, "Failed to check if default browser");
             return false;
         }
     }
@@ -94,8 +109,9 @@ public class DefaultBrowserService : IDefaultBrowserService
                 ? File.ReadAllText(DefaultBrowserPath).Trim()
                 : null;
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Warning(ex, "Failed to get saved default browser");
             return null;
         }
     }
@@ -111,7 +127,10 @@ public class DefaultBrowserService : IDefaultBrowserService
                 File.WriteAllText(DefaultBrowserPath, currentPath);
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to save current default browser");
+        }
     }
 
     private void RemoveSavedDefaultBrowser()
@@ -121,7 +140,10 @@ public class DefaultBrowserService : IDefaultBrowserService
             if (File.Exists(DefaultBrowserPath))
                 File.Delete(DefaultBrowserPath);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to remove saved default browser");
+        }
     }
 
     public string? GetRegisteredPath()
@@ -133,8 +155,9 @@ public class DefaultBrowserService : IDefaultBrowserService
             if (string.IsNullOrEmpty(cmd)) return null;
             return ParseExePath(cmd);
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Warning(ex, "Failed to get registered path");
             return null;
         }
     }
@@ -154,8 +177,9 @@ public class DefaultBrowserService : IDefaultBrowserService
 
             return ParseExePath(cmd);
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Warning(ex, "Failed to get current default browser path");
             return null;
         }
     }

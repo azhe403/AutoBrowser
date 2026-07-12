@@ -58,6 +58,9 @@ public partial class App
             };
             icon.ShowBalloonTip(3000, title, message, System.Windows.Forms.ToolTipIcon.Warning);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to show notification");
+        }
     }
 }

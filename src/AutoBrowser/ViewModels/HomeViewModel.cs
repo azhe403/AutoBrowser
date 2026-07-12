@@ -230,6 +230,10 @@ public partial class HomeViewModel : ObservableObject
         };
         dialog.Owner = System.Windows.Application.Current.MainWindow;
         var result = await dialog.ShowDialogAsync();
+        if (System.Windows.Application.Current.MainWindow != null && System.Windows.Application.Current.MainWindow.IsLoaded)
+        {
+            System.Windows.Application.Current.MainWindow.Focus();
+        }
 
         Log.Information("Update dialog result: {Result} for v{Version}", result, release.Version);
         if (result != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
@@ -259,6 +263,9 @@ public partial class HomeViewModel : ObservableObject
             };
             icon.ShowBalloonTip(3000, title, message, System.Windows.Forms.ToolTipIcon.Warning);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to show notification");
+        }
     }
 }
