@@ -47,6 +47,7 @@ public partial class App : Application
         services.AddSingleton<IProtocolService, ProtocolService>();
         services.AddSingleton<IDefaultBrowserService, DefaultBrowserService>();
         services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddSingleton<IDialogService, DialogService>();
         services.AddTransient<MainViewModel>();
         services.AddTransient<HomeViewModel>();
         services.AddTransient<SettingsViewModel>();
@@ -67,32 +68,44 @@ public partial class App : Application
         base.OnStartup(e);
 
         // Extract URL arg once — used for early routing and later pipe signaling
-        var urlArg = e.Args.Length > 0 ? e.Args[0] : null;
-        if (IsUrl(urlArg))
+        var urlArg = Array.Find(e.Args, IsUrl);
+        if (urlArg != null)
         {
             Log.Debug("URL argument received: {Url}", urlArg);
-            if (TryRouteUrl(urlArg!))
+            if (TryRouteUrl(urlArg))
             {
                 Shutdown();
                 return;
             }
         }
 
-        // Single-instance guard: if already running, signal it and exit
-        _mutex = new Mutex(true, MutexName, out var isNewInstance);
-        if (!isNewInstance)
+        var skipMutex = Array.Exists(e.Args, arg => arg.Equals("--no-single-instance", StringComparison.OrdinalIgnoreCase));
+        if (!skipMutex)
         {
-            Log.Information("Another instance detected, signaling via pipe");
-            SingleInstanceService.SignalExistingInstance(urlArg);
-            _mutex.Dispose();
-            _mutex = null;
-            Shutdown();
-            return;
+            // Single-instance guard: if already running, signal it and exit
+            _mutex = new Mutex(true, MutexName, out var isNewInstance);
+            if (!isNewInstance)
+            {
+                Log.Information("Another instance detected, signaling via pipe");
+                SingleInstanceService.SignalExistingInstance(urlArg);
+                _mutex.Dispose();
+                _mutex = null;
+                Shutdown();
+                return;
+            }
+            Log.Information("Single instance mutex acquired");
         }
-        Log.Information("Single instance mutex acquired");
+        else
+        {
+            Log.Information("Single instance mutex check skipped via command line argument");
+        }
 
         ShowMainWindow();
-        StartPipeServer();
+
+        if (!skipMutex)
+        {
+            StartPipeServer();
+        }
     }
 
     public void ApplyTheme(AppThemeMode mode)

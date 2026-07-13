@@ -16,6 +16,7 @@ public partial class HomeViewModel : ObservableObject
     private readonly IRuleService _ruleService;
     private readonly IDefaultBrowserService _defaultBrowserService;
     private readonly ISettingsService _settingsService;
+    private readonly IDialogService _dialogService;
     private readonly UpdateService _updateService = new();
 
     public ObservableCollection<RoutingRule> Rules { get; } = [];
@@ -48,11 +49,13 @@ public partial class HomeViewModel : ObservableObject
     public HomeViewModel(
         IRuleService ruleService,
         IDefaultBrowserService defaultBrowserService,
-        ISettingsService settingsService)
+        ISettingsService settingsService,
+        IDialogService dialogService)
     {
         _ruleService = ruleService;
         _defaultBrowserService = defaultBrowserService;
         _settingsService = settingsService;
+        _dialogService = dialogService;
 
         LoadRules();
 
@@ -76,6 +79,8 @@ public partial class HomeViewModel : ObservableObject
             foreach (RoutingRule rule in e.NewItems)
                 rule.PropertyChanged += Rule_PropertyChanged;
         }
+
+        SaveRules();
     }
 
     private void Rule_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -98,13 +103,13 @@ public partial class HomeViewModel : ObservableObject
     [RelayCommand]
     private void AddRule()
     {
-        var dialog = new RuleEditorView();
-        if (dialog.ShowDialog() == true)
+        var rule = _dialogService.ShowAddRuleDialog();
+        if (rule != null)
         {
-            Rules.Add(dialog.Rule);
-            SelectedRule = dialog.Rule;
+            Rules.Add(rule);
+            SelectedRule = rule;
             SaveRules();
-            Status = $"Rule \"{dialog.Rule.Name}\" added";
+            Status = $"Rule \"{rule.Name}\" added";
         }
     }
 
@@ -113,13 +118,13 @@ public partial class HomeViewModel : ObservableObject
     {
         if (SelectedRule is null) return;
         var index = Rules.IndexOf(SelectedRule);
-        var dialog = new RuleEditorView(SelectedRule);
-        if (dialog.ShowDialog() == true)
+        var rule = _dialogService.ShowEditRuleDialog(SelectedRule);
+        if (rule != null)
         {
-            Rules[index] = dialog.Rule;
-            SelectedRule = dialog.Rule;
+            Rules[index] = rule;
+            SelectedRule = rule;
             SaveRules();
-            Status = $"Rule \"{dialog.Rule.Name}\" updated";
+            Status = $"Rule \"{rule.Name}\" updated";
         }
     }
 

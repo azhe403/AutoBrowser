@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
+using AutoBrowser.Helpers;
 using AutoBrowser.Models;
+using Serilog;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
@@ -18,11 +20,12 @@ public partial class RuleEditorView : FluentWindow
         Owner = Application.Current.MainWindow;
 
         var browsers = BrowserDefinition.GetKnownBrowsers();
+        Log.Information("RuleEditorView: Found {Count} browsers", browsers.Count);
         BrowserCombo.ItemsSource = browsers;
         if (browsers.Count > 0)
             BrowserCombo.SelectedIndex = 0;
 
-        Loaded += (_, _) => BrowserPathBox.Focus();
+        Loaded += (_, _) => NameBox.Focus();
     }
 
     public RuleEditorView(RoutingRule existing) : this()
@@ -56,28 +59,34 @@ public partial class RuleEditorView : FluentWindow
             BrowserPathBox.Text = dialog.FileName;
     }
 
-    private void Ok_Click(object sender, RoutedEventArgs e)
+    private async void Ok_Click(object sender, RoutedEventArgs e)
     {
+        Log.Information("Ok_Click: NameBox.Text='{Name}', PatternBox.Text='{Pattern}', BrowserPathBox.Text='{Path}'",
+            NameBox.Text, PatternBox.Text, BrowserPathBox.Text);
+
         if (string.IsNullOrWhiteSpace(NameBox.Text) ||
             string.IsNullOrWhiteSpace(PatternBox.Text) ||
             string.IsNullOrWhiteSpace(BrowserPathBox.Text))
         {
-            System.Windows.MessageBox.Show("Name, URL pattern, and browser are required.", "Validation",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+            Log.Warning("Ok_Click: Validation failed - empty fields");
+            await MessageBoxHelper.ShowAsync("Validation", "Name, URL pattern, and browser are required.");
             return;
         }
 
         var (isValid, error) = RoutingRule.ValidatePattern(PatternBox.Text.Trim());
         if (!isValid)
         {
-            System.Windows.MessageBox.Show(error, "Invalid URL Pattern",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+            Log.Warning("Ok_Click: Invalid pattern - {Error}", error);
+            await MessageBoxHelper.ShowAsync("Invalid URL Pattern", error ?? "Invalid pattern.");
             return;
         }
 
         Rule.Name = NameBox.Text.Trim();
         Rule.UrlPattern = PatternBox.Text.Trim();
         Rule.BrowserPath = BrowserPathBox.Text.Trim();
+
+        Log.Information("Ok_Click: Rule saved - Name={Name}, Pattern={Pattern}, Path={Path}",
+            Rule.Name, Rule.UrlPattern, Rule.BrowserPath);
 
         DialogResult = true;
         Close();

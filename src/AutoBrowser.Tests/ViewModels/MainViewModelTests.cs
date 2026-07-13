@@ -56,8 +56,6 @@ public class SettingsViewModelTests
         _mockDefaultBrowserService = new Mock<IDefaultBrowserService>();
         _mockSettingsService = new Mock<ISettingsService>();
         _mockSettingsService.Setup(x => x.LoadSettings()).Returns(new AppSettings());
-
-
     }
 
     [Fact]
@@ -80,17 +78,19 @@ public class HomeViewModelTests
     private readonly Mock<IRuleService> _mockRuleService;
     private readonly Mock<IDefaultBrowserService> _mockDefaultBrowserService;
     private readonly Mock<ISettingsService> _mockSettingsService;
+    private readonly Mock<IDialogService> _mockDialogService;
 
     public HomeViewModelTests()
     {
         _mockRuleService = new Mock<IRuleService>();
         _mockDefaultBrowserService = new Mock<IDefaultBrowserService>();
         _mockSettingsService = new Mock<ISettingsService>();
+        _mockDialogService = new Mock<IDialogService>();
 
         _mockRuleService.Setup(x => x.LoadRules()).Returns(new List<RoutingRule>());
         _mockSettingsService.Setup(x => x.LoadSettings()).Returns(new AppSettings());
-
-
+        _mockDialogService.Setup(x => x.ShowAddRuleDialog()).Returns((RoutingRule?)null);
+        _mockDialogService.Setup(x => x.ShowEditRuleDialog(It.IsAny<RoutingRule>())).Returns((RoutingRule?)null);
     }
 
     [Fact]
@@ -107,7 +107,8 @@ public class HomeViewModelTests
         var vm = new HomeViewModel(
             _mockRuleService.Object,
             _mockDefaultBrowserService.Object,
-            _mockSettingsService.Object);
+            _mockSettingsService.Object,
+            _mockDialogService.Object);
 
         // Assert
         Assert.Single(vm.Rules);
@@ -121,7 +122,8 @@ public class HomeViewModelTests
         var vm = new HomeViewModel(
             _mockRuleService.Object,
             _mockDefaultBrowserService.Object,
-            _mockSettingsService.Object);
+            _mockSettingsService.Object,
+            _mockDialogService.Object);
 
         // Assert
         Assert.Null(vm.SelectedRule);
@@ -139,7 +141,8 @@ public class HomeViewModelTests
         var vm = new HomeViewModel(
             _mockRuleService.Object,
             _mockDefaultBrowserService.Object,
-            _mockSettingsService.Object);
+            _mockSettingsService.Object,
+            _mockDialogService.Object);
         var rule = new RoutingRule { Name = "Test Rule", UrlPattern = "test.com" };
 
         // Act
