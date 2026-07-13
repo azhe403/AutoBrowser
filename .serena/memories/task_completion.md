@@ -1,42 +1,11 @@
-# Task Completion — Verification Steps
+# Task Completion
 
-After any code change, run these commands in order:
-
-## 1. Run Tests
-```bash
-dotnet test src\AutoBrowser.Tests\AutoBrowser.Tests.csproj
-```
-
-## 2. Build (Staging)
-```bash
-dotnet build src\AutoBrowser\AutoBrowser.csproj -o bin\staging
-```
-
-## 3. Launch and Verify
-```powershell
-$proc = Start-Process -FilePath "bin\staging\AutoBrowser.exe" -PassThru; Start-Sleep -Seconds 20; Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-```
-
-## 4. Check Logs
-```powershell
-Get-ChildItem "bin\staging\Logs\" -Filter "*.log" | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | ForEach-Object { Get-Content $_.FullName | Select-String "\[ERR\]" }
-```
-
-## 5. Test Re-Register Prompt (if protocol/default browser changes)
-```powershell
-# Read current path
-$regPath = "HKCU:\Software\Classes\AutoBrowserLink\shell\open\command"
-$original = (Get-ItemProperty -Path $regPath -Name "(default)")."(default)"
-
-# Fake old path to trigger prompt
-Set-ItemProperty -Path $regPath -Name "(default)" -Value '"C:\OldLocation\AutoBrowser.exe" "%1"'
-
-# Launch — user should see the dialog
-$proc = Start-Process -FilePath "bin\staging\AutoBrowser.exe" -PassThru; Start-Sleep -Seconds 20; Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-
-# Restore original path
-Set-ItemProperty -Path $regPath -Name "(default)" -Value $original
-
-# Verify log shows re-register was triggered
-Get-ChildItem "bin\staging\Logs\" -Filter "*.log" | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | ForEach-Object { Get-Content $_.FullName | Select-String "App path has changed" }
-```
+## Verification Protocol
+1. **Run Unit Tests**:
+   `dotnet test src\AutoBrowser.Tests\AutoBrowser.Tests.csproj`
+2. **Build Staging**:
+   `dotnet build src\AutoBrowser\AutoBrowser.csproj -o bin\staging`
+3. **Launch/Exit Verification**:
+   `$proc = Start-Process -FilePath "bin\staging\AutoBrowser.exe" -PassThru; Start-Sleep -Seconds 20; Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue`
+4. **Log Inspection**: Check logs under `bin\staging\Logs/` for `[ERR]` entries.
+5. **Memory Synchronization**: Document changes in `AutoBrowser/changes/YYYY-MM-DD` and sync any updated architectural memories.

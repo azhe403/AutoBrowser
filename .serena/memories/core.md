@@ -1,38 +1,25 @@
-# AutoBrowser — Core
+# Core
 
-## Project Type
-Windows WPF desktop app (.NET 10) that routes URLs to user-configured browsers via regex rules.
+## Source Map
+- `src/AutoBrowser/` - Main WPF application.
+  - `App.xaml / App.xaml.cs` - Entry point, DI container setup, single-instance mutex, tray icon.
+  - `MainWindow.xaml / .cs` - Main window, UI host (NavigationView).
+  - `Models/` - Data models (`RoutingRule`, `AppSettings`, `BrowserDefinition`, `AppThemeMode`).
+  - `Services/` - Core logic (`RuleService`, `SettingsService`, `ProtocolService`, `UpdateService`, `UrlInterceptorService`).
+  - `ViewModels/` - UI state (`MainViewModel`, `SettingsViewModel`).
+  - `Views/` - Pages (`HomePage`, `SettingsPage`, `AboutPage`) and controls (`RuleEditorView`, `RuleTesterView`).
+- `src/AutoUpdater/` - Standalone updater executable.
+- `src/AutoBrowser.Tests/` - Unit tests.
+- `Data/` - Persistent storage (created at runtime next to EXE).
 
-## Repository Layout
-```
-src/
-├── AutoBrowser/          # Main WPF app (net10.0-windows)
-│   ├── Models/           # RoutingRule, BrowserDefinition, AppSettings, AppThemeMode
-│   ├── Services/         # RuleService, ProtocolService, DefaultBrowserService, SettingsService, UpdateService, UrlInterceptorService, SingleInstanceService
-│   ├── ViewModels/       # MainViewModel, SettingsViewModel
-│   └── Views/            # HomePage, SettingsPage, AboutPage, ToolbarView, RulesListView, StatusControl, RuleEditorView, RuleTesterView
-├── AutoBrowser.Tests/    # xUnit + Moq unit tests
-└── AutoUpdater/          # Standalone single-file console EXE for file swap + relaunch
-```
+## Architecture Invariants
+- **Dependency Injection**: Services and ViewModels are resolved from a central `ServiceProvider` initialized in `App.xaml.cs`.
+- **Portability**: All settings and rules are stored in JSON files within the `Data/` directory next to the executable. Do not use `%APPDATA%`.
+- **Registry Access**: Modifications are strictly limited to `HKCU` to avoid requiring admin privileges.
+- **Window Layout**: `MainWindow` uses `NavigationView` as its root. Pages handle their own scrolling (`ScrollViewer.CanContentScroll="False"`).
 
-## Key Invariants
-- Portable: all data stored in `Data/` folder next to EXE
-- Single-instance via named pipe IPC + named mutex
-- Registers `autobrowser://` protocol handler; optionally registers as default browser
-- URL routing: pattern match (regex with substring fallback) → launch browser by path
-- Infinite-loop protection: unmatched URLs launch previous default browser directly by EXE path
-- Auto-update from GitHub releases (throttled to once per hour)
-- Theme persistence via `AppSettings.ThemeMode`
-- DI container via `Microsoft.Extensions.DependencyInjection`
-
-## Memories Index
-- `mem:tech_stack` — languages, frameworks, dependencies
-- `mem:conventions` — code style, naming, patterns
-- `mem:suggested_commands` — build, test, run commands
-- `mem:task_completion` — verification steps after changes
-- `mem:AutoBrowser/architecture` — high-level design, DI, page layout, theme init
-- `mem:AutoBrowser/flow` — URL routing, update flow, startup sequence
-- `mem:AutoBrowser/services` — browser detection, persistence, registry
-- `mem:AutoBrowser/ui-behavior` — theme toggle, tray, re-register prompt, WPF UI patterns
-- `mem:git/commit-strategy` — split per logical context, 3-5min delay between commits
-- `mem:workflow/sync-memory` — sync project state to memory after changes
+## References
+- `mem:tech_stack`
+- `mem:suggested_commands`
+- `mem:conventions`
+- `mem:task_completion`

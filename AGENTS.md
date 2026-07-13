@@ -88,7 +88,7 @@ Before doing ANY task, read the relevant Serena memories to understand current p
 - `AutoBrowser/flow` — URL routing flow and pattern matching
 - `AutoBrowser/services` — browser detection, persistence, registry
 - `AutoBrowser/ui-behavior` — theme toggle, tray, build commands
-- `AutoBrowser/changes/YYYY-MM-DD` — recent changes (check latest date)
+- `AutoBrowser/changes/YYYY-MM/YYYY-MM-DD` — recent changes (check latest date)
 
 This prevents stale assumptions and keeps context fresh.
 
@@ -96,7 +96,7 @@ This prevents stale assumptions and keeps context fresh.
 
 After every change (code, config, files), immediately update the relevant Serena memory. This keeps context fresh for fast future action.
 
-See `workflow/sync-memory` for details. Use `AutoBrowser/changes/YYYY-MM-DD` for daily changelog.
+See `workflow/sync-memory` for details. Use `AutoBrowser/changes/YYYY-MM/YYYY-MM-DD` for daily changelog.
 
 ## Build & Run
 

@@ -1,29 +1,21 @@
 # Conventions
 
 ## Code Style
-- Use `using` directives instead of fully qualified type names (e.g., `using System.Windows.Forms;` then `new NotifyIcon()` not `new System.Windows.Forms.NotifyIcon()`)
-- When namespace ambiguity exists, add aliases in `GlobalUsings.cs` only — never use local `using` aliases in individual files
-- C# with nullable enabled, implicit usings enabled
-- File-scoped namespaces (e.g., `namespace AutoBrowser;`)
-- CommunityToolkit.Mvvm source generators: `[ObservableProperty]`, `[RelayCommand]`, `partial void On<Property>Changed()`
-- Serilog structured logging with message templates: `Log.Information("Message {Param}", value)`
+- Use standard `using` directives at top of file, not fully qualified names in code.
+- Namespace aliases and global imports belong in `GlobalUsings.cs`.
 
-## Naming
-- Private fields: `_camelCase` (e.g., `_ruleService`, `_isDarkTheme`)
-- Properties: `PascalCase` (e.g., `SelectedRule`, `Status`)
-- Commands: verb-noun via `[RelayCommand]` (e.g., `AddRuleCommand`, `CheckForUpdateCommand`)
-- View files: `<Name>View.xaml` + `<Name>View.xaml.cs`, Pages: `<Name>Page.xaml` + `<Name>Page.xaml.cs`
-- Model files: plain names (e.g., `RoutingRule.cs`, `AppSettings.cs`)
+## MVVM Pattern
+- Properties in Models and ViewModels inherit from `ObservableObject` or use `CommunityToolkit.Mvvm` source generators.
+- UI elements use data binding to ViewModel commands instead of code-behind events.
 
-## Architecture
-- MVVM: View → ViewModel → Service → Model
-- DI container: services registered as singletons, ViewModels as transient in `App.xaml.cs`
-- Views resolve ViewModels from DI container (no manual instantiation)
-- Data persistence: JSON files in `Data/` folder (portable)
-- Registry operations: HKCU only (no admin elevation)
+## WPF UI Conventions
+- **Typography Rule**: `ui:TextBlock` with `FontTypography` MUST specify an explicit `Foreground` brush binding (e.g. `Foreground="{DynamicResource TextFillColorPrimaryBrush}"`), otherwise it defaults to black in dark mode.
+- **Page Layout**: Set `ScrollViewer.CanContentScroll="False"` on pages with their own `ScrollViewer` to disable NavigationView's built-in scroll.
+- **Dialogs**: Use WPF UI `MessageBox` with `ShowDialogAsync()` instead of `System.Windows.MessageBox`.
 
-## XAML
-- WPF UI controls: `xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"`
-- Theme: `ui:FluentWindow` with `Appearance:ThemeManager`
-- Dialogs: `Wpf.Ui.Controls.MessageBox` with `ShowDialogAsync()` (not `System.Windows.MessageBox`)
-- Pages use sticky header + scrollable content pattern with `ScrollViewer.CanContentScroll="False"`
+## Logging Hierarchy
+- `Information` - Method entry/exit points, key parameters, completion status.
+- `Debug` - Intermediate steps, variable values, branch conditions.
+- `Verbose` - Iterations, fine-grained details.
+- `Error` - Exceptions.
+- Serilog uses `Verbose` (not `Trace`).

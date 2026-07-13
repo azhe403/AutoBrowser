@@ -1,22 +1,18 @@
 # Tech Stack
 
-## Runtime
-- .NET 10 (net10.0-windows) — preview SDK, `global.json` pins `10.0.0` with `latestMinor` rollforward
-- Windows-only (WPF + WinForms interop for NotifyIcon)
+## Core
+- **Language**: C# (.NET 10)
+- **Framework**: WPF (Windows Presentation Foundation)
+- **UI Toolkit**: WPF UI (`xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"`)
 
-## Dependencies (AutoBrowser.csproj)
-- `CommunityToolkit.Mvvm 8.4.2` — MVVM source generators (`ObservableObject`, `RelayCommand`)
-- `Microsoft.Extensions.DependencyInjection 10.0.9` — DI container
-- `WPF-UI 4.3.0` — Fluent Design controls, theming (`ApplicationThemeManager`)
-- `Serilog 4.4.0` + `Serilog.Enrichers.Thread 4.0.0` + `Serilog.Sinks.Console 6.1.1` + `Serilog.Sinks.File 7.0.0`
-- WPF + WinForms (for `NotifyIcon` tray support)
+## Architecture
+- **Pattern**: MVVM (Model-View-ViewModel)
+- **State Management**: `CommunityToolkit.Mvvm` (ObservableObject, RelayCommand)
+- **Dependency Injection**: `Microsoft.Extensions.DependencyInjection`
 
-## Test Dependencies (AutoBrowser.Tests.csproj)
-- `xunit 2.9.3` + `xunit.runner.visualstudio 3.1.5`
-- `Moq 4.20.72`
-- `Microsoft.NET.Test.Sdk 18.7.0`
-- `coverlet.collector 10.0.1`
+## Libraries
+- **Logging**: Serilog (structured logging to file)
 
-## AutoUpdater
-- Separate console project, published as standalone EXE
-- Copied to output via MSBuild `PublishUpdater`/`CopyUpdater` targets
+## Build
+- **Project Format**: SDK-style (`net10.0-windows`)
+- **Updater**: Standalone single-file console app (`PublishSingleFile=true`) built via MSBuild task.

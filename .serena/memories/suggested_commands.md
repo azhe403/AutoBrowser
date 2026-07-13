@@ -1,36 +1,17 @@
 # Suggested Commands
 
-## Build
-```bash
-# Full build
-dotnet build src\AutoBrowser\AutoBrowser.csproj
+## Codebase Commands
+- **Verify compilation (non-destructive)**:
+  `dotnet build src\AutoBrowser\AutoBrowser.csproj -o bin\staging`
+- **Full build (destroys running app)**:
+  `dotnet build src\AutoBrowser\AutoBrowser.csproj`
+- **Run project**:
+  `dotnet run --project src\AutoBrowser\AutoBrowser.csproj`
+- **Run tests**:
+  `dotnet test src\AutoBrowser.Tests\AutoBrowser.Tests.csproj`
 
-# Build to staging (doesn't kill running instance)
-dotnet build src\AutoBrowser\AutoBrowser.csproj -o bin\staging
-
-# Build solution
-dotnet build AutoBrowser.slnx
-```
-
-## Test
-```bash
-dotnet test src\AutoBrowser.Tests\AutoBrowser.Tests.csproj
-```
-
-## Run
-```bash
-dotnet run --project src\AutoBrowser\AutoBrowser.csproj
-```
-
-## Publish
-```bash
-# Publish AutoUpdater (triggers automatically via MSBuild targets)
-dotnet publish src\AutoUpdater\AutoUpdater.csproj -c Release
-```
-
-## Git (Windows)
-```bash
-git status
-git diff
-git log --oneline -10
-```
+## Windows Registry Checks
+- **Read protocol command**:
+  `Get-ItemProperty -Path "HKCU:\Software\Classes\AutoBrowserLink\shell\open\command" -Name "(default)"`
+- **Write fake registry path (testing prompt)**:
+  `Set-ItemProperty -Path "HKCU:\Software\Classes\AutoBrowserLink\shell\open\command" -Name "(default)" -Value '"C:\OldLocation\AutoBrowser.exe" "%1"'`
