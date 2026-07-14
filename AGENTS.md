@@ -140,6 +140,7 @@ If tests fail or the app fails to launch or throws an error, fix it before proce
 
 ## Git Rules — CRITICAL
 
-- **NEVER commit or push without explicit user permission** — this is the #1 rule
+- **NEVER commit or push without explicit user permission** — this is the #1 rule.
+  - Under no circumstances should you run `git commit`, `git push`, or `git add` unless the user has explicitly requested it in their message. If you need to check state, only use read-only commands like `git status` or `git diff`.
 - Split large changes into multiple logical commits
 - Add 3-5 minute random delay between commits
