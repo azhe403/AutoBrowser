@@ -1,5 +1,6 @@
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
+using Xunit;
 
 namespace AutoBrowser.Tests.UI;
 
@@ -31,8 +32,8 @@ public class MainWindowTests : IDisposable
     public void App_Launches_MainWindow_IsVisible()
     {
         var app = _launcher.Launch();
-        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10));
-        Assert.NotNull(mainWindow);
+        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10)) 
+            ?? throw new InvalidOperationException("MainWindow null");
         mainWindow.Focus();
         _launcher.DismissBlockingDialogs();
 
@@ -43,8 +44,8 @@ public class MainWindowTests : IDisposable
     public void MainWindow_HasCorrect_Title()
     {
         var app = _launcher.Launch();
-        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10));
-        Assert.NotNull(mainWindow);
+        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10))
+            ?? throw new InvalidOperationException("MainWindow null");
         mainWindow.Focus();
         _launcher.DismissBlockingDialogs();
 
@@ -55,8 +56,8 @@ public class MainWindowTests : IDisposable
     public void MainWindow_ContainsNavigationView()
     {
         var app = _launcher.Launch();
-        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10));
-        Assert.NotNull(mainWindow);
+        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10))
+            ?? throw new InvalidOperationException("MainWindow null");
         mainWindow.Focus();
         _launcher.DismissBlockingDialogs();
 
@@ -69,8 +70,8 @@ public class MainWindowTests : IDisposable
     public void MainWindow_HomePage_IsDefault()
     {
         var app = _launcher.Launch();
-        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10));
-        Assert.NotNull(mainWindow);
+        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10))
+            ?? throw new InvalidOperationException("MainWindow null");
         mainWindow.Focus();
         _launcher.DismissBlockingDialogs();
         Thread.Sleep(1000);
@@ -88,8 +89,8 @@ public class MainWindowTests : IDisposable
     public void MainWindow_CanNavigateToPage(string pageName)
     {
         var app = _launcher.Launch();
-        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10));
-        Assert.NotNull(mainWindow);
+        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10))
+            ?? throw new InvalidOperationException("MainWindow null");
         mainWindow.Focus();
         _launcher.DismissBlockingDialogs();
         Thread.Sleep(1000);
@@ -116,8 +117,8 @@ public class MainWindowTests : IDisposable
     public void MainWindow_Toolbar_HasButton(string buttonText)
     {
         var app = _launcher.Launch();
-        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10));
-        Assert.NotNull(mainWindow);
+        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10))
+            ?? throw new InvalidOperationException("MainWindow null");
         mainWindow.Focus();
         _launcher.DismissBlockingDialogs();
         Thread.Sleep(1000);
@@ -132,8 +133,8 @@ public class MainWindowTests : IDisposable
     public void MainWindow_AddButton_OpensRuleEditor()
     {
         var app = _launcher.Launch();
-        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10));
-        Assert.NotNull(mainWindow);
+        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10))
+            ?? throw new InvalidOperationException("MainWindow null");
         mainWindow.Focus();
         _launcher.DismissBlockingDialogs();
         Thread.Sleep(1000);
@@ -153,8 +154,8 @@ public class MainWindowTests : IDisposable
     public void MainWindow_AddRule_FillForm_Save()
     {
         var app = _launcher.Launch();
-        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10));
-        Assert.NotNull(mainWindow);
+        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10))
+            ?? throw new InvalidOperationException("MainWindow null");
         mainWindow.Focus();
         _launcher.DismissBlockingDialogs();
         Thread.Sleep(1000);
@@ -168,18 +169,18 @@ public class MainWindowTests : IDisposable
         var editorWindow = GetRoutingRuleWindow(app, mainWindow);
 
         var nameBox = editorWindow.FindFirstDescendant(cf =>
-            cf.ByAutomationId("NameBox"))?.AsTextBox();
-        Assert.NotNull(nameBox);
+            cf.ByAutomationId("NameBox"))?.AsTextBox()
+            ?? throw new InvalidOperationException("NameBox null");
         nameBox.Text = "Test Rule from UI";
 
         var patternBox = editorWindow.FindFirstDescendant(cf =>
-            cf.ByAutomationId("PatternBox"))?.AsTextBox();
-        Assert.NotNull(patternBox);
+            cf.ByAutomationId("PatternBox"))?.AsTextBox()
+            ?? throw new InvalidOperationException("PatternBox null");
         patternBox.Text = "test-example.com";
 
         var browserPathBox = editorWindow.FindFirstDescendant(cf =>
-            cf.ByAutomationId("BrowserPathBox"))?.AsTextBox();
-        Assert.NotNull(browserPathBox);
+            cf.ByAutomationId("BrowserPathBox"))?.AsTextBox()
+            ?? throw new InvalidOperationException("BrowserPathBox null");
         browserPathBox.Text = @"C:\test\browser.exe";
 
         var okButton = editorWindow.FindFirstDescendant(cf =>
@@ -198,8 +199,8 @@ public class MainWindowTests : IDisposable
     public void MainWindow_EditRule_FillForm_Save()
     {
         var app = _launcher.Launch();
-        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10));
-        Assert.NotNull(mainWindow);
+        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10))
+            ?? throw new InvalidOperationException("MainWindow null");
         mainWindow.Focus();
         _launcher.DismissBlockingDialogs();
         Thread.Sleep(1000);
@@ -213,18 +214,18 @@ public class MainWindowTests : IDisposable
         var editorWindow = GetRoutingRuleWindow(app, mainWindow);
 
         var nameBox = editorWindow.FindFirstDescendant(cf =>
-            cf.ByAutomationId("NameBox"))?.AsTextBox();
-        Assert.NotNull(nameBox);
+            cf.ByAutomationId("NameBox"))?.AsTextBox()
+            ?? throw new InvalidOperationException("NameBox null");
         nameBox.Text = "Rule To Edit";
 
         var patternBox = editorWindow.FindFirstDescendant(cf =>
-            cf.ByAutomationId("PatternBox"))?.AsTextBox();
-        Assert.NotNull(patternBox);
+            cf.ByAutomationId("PatternBox"))?.AsTextBox()
+            ?? throw new InvalidOperationException("PatternBox null");
         patternBox.Text = "edit-me.com";
 
         var browserPathBox = editorWindow.FindFirstDescendant(cf =>
-            cf.ByAutomationId("BrowserPathBox"))?.AsTextBox();
-        Assert.NotNull(browserPathBox);
+            cf.ByAutomationId("BrowserPathBox"))?.AsTextBox()
+            ?? throw new InvalidOperationException("BrowserPathBox null");
         browserPathBox.Text = @"C:\test\browser.exe";
 
         var okButton = editorWindow.FindFirstDescendant(cf =>
@@ -251,8 +252,8 @@ public class MainWindowTests : IDisposable
         var editWindow = GetRoutingRuleWindow(app, mainWindow);
 
         var editNameBox = editWindow.FindFirstDescendant(cf =>
-            cf.ByAutomationId("NameBox"))?.AsTextBox();
-        Assert.NotNull(editNameBox);
+            cf.ByAutomationId("NameBox"))?.AsTextBox()
+            ?? throw new InvalidOperationException("editNameBox null");
         editNameBox.Text = "Rule To Edit Edited";
 
         var editOkButton = editWindow.FindFirstDescendant(cf =>
@@ -270,8 +271,8 @@ public class MainWindowTests : IDisposable
     public void MainWindow_DeleteRule()
     {
         var app = _launcher.Launch();
-        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10));
-        Assert.NotNull(mainWindow);
+        var mainWindow = app.GetMainWindow(_launcher.Automation, TimeSpan.FromSeconds(10))
+            ?? throw new InvalidOperationException("MainWindow null");
         mainWindow.Focus();
         _launcher.DismissBlockingDialogs();
         Thread.Sleep(1000);
@@ -285,18 +286,18 @@ public class MainWindowTests : IDisposable
         var editorWindow = GetRoutingRuleWindow(app, mainWindow);
 
         var nameBox = editorWindow.FindFirstDescendant(cf =>
-            cf.ByAutomationId("NameBox"))?.AsTextBox();
-        Assert.NotNull(nameBox);
+            cf.ByAutomationId("NameBox"))?.AsTextBox()
+            ?? throw new InvalidOperationException("NameBox null");
         nameBox.Text = "Rule To Delete";
 
         var patternBox = editorWindow.FindFirstDescendant(cf =>
-            cf.ByAutomationId("PatternBox"))?.AsTextBox();
-        Assert.NotNull(patternBox);
+            cf.ByAutomationId("PatternBox"))?.AsTextBox()
+            ?? throw new InvalidOperationException("PatternBox null");
         patternBox.Text = "delete-me.com";
 
         var browserPathBox = editorWindow.FindFirstDescendant(cf =>
-            cf.ByAutomationId("BrowserPathBox"))?.AsTextBox();
-        Assert.NotNull(browserPathBox);
+            cf.ByAutomationId("BrowserPathBox"))?.AsTextBox()
+            ?? throw new InvalidOperationException("BrowserPathBox null");
         browserPathBox.Text = @"C:\test\browser.exe";
 
         var okButton = editorWindow.FindFirstDescendant(cf =>
