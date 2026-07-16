@@ -2,6 +2,8 @@ using System.Diagnostics;
 using System.IO;
 using FlaUI.Core.Definitions;
 using FlaUI.UIA3;
+using System.Threading;
+using System.Linq;
 
 namespace AutoBrowser.Tests.UI;
 
@@ -17,52 +19,42 @@ public class AppLauncher : IDisposable
 
     public FlaUI.Core.Application Launch()
     {
-        if (_process != null && !_process.HasExited)
+        try
+        {
+            if (_process != null && !_process.HasExited)
+            {
+                _process.Kill();
+                _process.WaitForExit(2000);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to kill existing process: {ex.Message}");
+        }
+
+        foreach (var proc in Process.GetProcessesByName("AutoBrowser"))
         {
             try
             {
-                _process.Kill();
+                if (!proc.HasExited)
+                {
+                    proc.Kill();
+                    proc.WaitForExit(2000);
+                }
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Failed to kill process: {ex.Message}");
-            }
-        }
-        // Kill any lingering instances that hold the mutex
-        foreach (var proc in Process.GetProcessesByName("AutoBrowser"))
-        {
-            try 
-            { 
-                proc.Kill(); 
-                proc.WaitForExit(2000); 
-            } 
             catch (Exception ex)
             {
                 Debug.WriteLine($"Failed to kill lingering process: {ex.Message}");
             }
         }
+
         Thread.Sleep(500);
 
-        _tempDir = Path.Combine(Path.GetTempPath(), $"AutoBrowserTests_{Guid.NewGuid():N}");
+        _tempDir = Path.Combine(Path.GetTempPath(), $"AutoBrowserTests_{Guid.NewGuid()}");
         Directory.CreateDirectory(_tempDir);
 
         var sourceDir = AppContext.BaseDirectory;
-
-        foreach (var file in Directory.GetFiles(sourceDir))
-        {
-            File.Copy(file, Path.Combine(_tempDir, Path.GetFileName(file)), true);
-        }
-
-        var sourceDataDir = Path.Combine(sourceDir, "Data");
-        if (Directory.Exists(sourceDataDir))
-        {
-            var destDataDir = Path.Combine(_tempDir, "Data");
-            Directory.CreateDirectory(destDataDir);
-            foreach (var file in Directory.GetFiles(sourceDataDir))
-            {
-                File.Copy(file, Path.Combine(destDataDir, Path.GetFileName(file)), true);
-            }
-        }
+        CopyDirectory(sourceDir, _tempDir);
 
         var exePath = Path.Combine(_tempDir, "AutoBrowser.exe");
         Console.WriteLine($"Launching test app at {exePath}");
@@ -79,9 +71,34 @@ public class AppLauncher : IDisposable
             throw new InvalidOperationException("Failed to start AutoBrowser process.");
         }
 
+        Thread.Sleep(1000);
+
         _automation = new UIA3Automation();
         _app = FlaUI.Core.Application.Attach(_process);
+
         return _app;
+    }
+
+    private void CopyDirectory(string sourceDir, string destDir)
+    {
+        var dir = new DirectoryInfo(sourceDir);
+        var dirs = dir.GetDirectories();
+
+        if (!Directory.Exists(destDir))
+        {
+            Directory.CreateDirectory(destDir);
+        }
+
+        foreach (var file in dir.GetFiles())
+        {
+            var targetFilePath = Path.Combine(destDir, file.Name);
+            file.CopyTo(targetFilePath, true);
+        }
+
+        foreach (var subdirectory in dirs)
+        {
+            CopyDirectory(subdirectory.FullName, Path.Combine(destDir, subdirectory.Name));
+        }
     }
 
     public void DismissBlockingDialogs(int retries = 3)
@@ -132,20 +149,49 @@ public class AppLauncher : IDisposable
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Failed to kill process during dispose: {ex.Message}");
+            Debug.WriteLine($"Failed to clean up process during dispose: {ex.Message}");
+        }
+
+        foreach (var proc in Process.GetProcessesByName("AutoBrowser"))
+        {
+            try
+            {
+                if (!proc.HasExited)
+                {
+                    proc.Kill();
+                    proc.WaitForExit(2000);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to kill background process: {ex.Message}");
+            }
+            finally
+            {
+                try
+                {
+                    proc.Dispose();
+                }
+                catch
+                {
+                    /* Ignore disposal errors */
+                }
+            }
         }
 
         _automation?.Dispose();
         _process?.Dispose();
 
-        try
+        if (_tempDir != null && Directory.Exists(_tempDir))
         {
-            if (_tempDir != null && Directory.Exists(_tempDir))
+            try
+            {
                 Directory.Delete(_tempDir, true);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Failed to delete temp dir: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to delete temp dir: {ex.Message}");
+            }
         }
     }
 }
