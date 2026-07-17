@@ -1,3 +1,4 @@
+using System.CommandLine;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using Serilog;
@@ -15,15 +16,29 @@ internal static class Program
 
     static async Task<int> Main(string[] args)
     {
-        // Determine app directory from --exe argument for log placement
-        var parsedArgsPre = ParseArguments(args);
-        var appDirForLog = ".";
-        if (parsedArgsPre.TryGetValue("--exe", out var exePath) && !string.IsNullOrEmpty(exePath))
-        {
-            appDirForLog = Path.GetDirectoryName(exePath) ?? ".";
-        }
+        var pidOption = new Option<int>("--pid", "Process ID of the app to wait for") { IsRequired = true };
+        var sourceOption = new Option<string>("--source", "Path to update workspace directory") { IsRequired = true };
+        var exeOption = new Option<string>("--exe", "Path to app executable") { IsRequired = true };
 
-        // Configure Serilog - logs in same directory as the app
+        var rootCommand = new RootCommand("AutoUpdater - applies updates to AutoBrowser")
+        {
+            pidOption,
+            sourceOption,
+            exeOption
+        };
+
+        rootCommand.SetHandler(async (int appPid, string updateWorkspace, string appExePath) =>
+        {
+            Environment.ExitCode = await RunUpdate(appPid, updateWorkspace, appExePath, args);
+        }, pidOption, sourceOption, exeOption);
+
+        return await rootCommand.InvokeAsync(args);
+    }
+
+    private static async Task<int> RunUpdate(int appPid, string updateWorkspace, string appExePath, string[] args)
+    {
+        var appDirForLog = Path.GetDirectoryName(appExePath) ?? ".";
+
         var logDir = Path.Combine(appDirForLog, "Logs");
         Directory.CreateDirectory(logDir);
         var logPath = Path.Combine(logDir, "Updater-.log");
@@ -40,27 +55,6 @@ internal static class Program
         {
             Log.Information("=== AutoUpdater Started ===");
             Log.Information("Args: {Args}", string.Join(" ", args));
-
-            // Parse named arguments: --pid, --source, --target, --exe, --workspace
-            var parsedArgs = ParseArguments(args);
-
-            if (!parsedArgs.TryGetValue("--pid", out var pidStr) || !int.TryParse(pidStr, out var appPid))
-            {
-                Log.Error("Missing or invalid --pid argument");
-                return 1;
-            }
-
-            if (!parsedArgs.TryGetValue("--source", out var updateWorkspace) || string.IsNullOrEmpty(updateWorkspace))
-            {
-                Log.Error("Missing or invalid --source argument");
-                return 1;
-            }
-
-            if (!parsedArgs.TryGetValue("--exe", out var appExePath) || string.IsNullOrEmpty(appExePath))
-            {
-                Log.Error("Missing or invalid --exe argument");
-                return 1;
-            }
 
             _appDir = Path.GetDirectoryName(appExePath) ?? ".";
             _backupDir = Path.Combine(_appDir, "UpdateBackup");
@@ -132,25 +126,6 @@ internal static class Program
         {
             Log.CloseAndFlush();
         }
-    }
-
-    private static Dictionary<string, string> ParseArguments(string[] args)
-    {
-        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-        for (int i = 0; i < args.Length; i++)
-        {
-            var arg = args[i];
-            if (arg.StartsWith("--") && i + 1 < args.Length)
-            {
-                var key = arg;
-                var value = args[i + 1].Trim('"');
-                result[key] = value;
-                i++; // Skip the value
-            }
-        }
-
-        return result;
     }
 
     private static void BackupFiles()
